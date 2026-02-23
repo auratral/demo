@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
 
@@ -16,7 +16,7 @@ import Dashboard from './pages/Dashboard';
 
 function App() {
     return (
-        <BrowserRouter>
+        <HashRouter>
             <div className="flex flex-col min-h-screen">
                 <Navbar />
 
@@ -63,7 +63,7 @@ function App() {
 
                 <Footer />
             </div>
-        </BrowserRouter>
+        </HashRouter>
     );
 }
 
