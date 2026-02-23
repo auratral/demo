@@ -19,7 +19,7 @@ const Navbar = () => {
             <div className="navbar-container">
                 {/* Logo */}
                 <Link to="/" className="navbar-logo flex items-center">
-                    <img src="/logo.png" alt="Auratral" className="h-8 w-auto mix-blend-screen" />
+                    <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Auratral" className="h-8 w-auto mix-blend-screen" />
                 </Link>
 
                 {/* Navigation Links */}
