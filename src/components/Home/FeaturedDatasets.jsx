@@ -6,7 +6,7 @@ import './FeaturedDatasets.css';
 const datasets = [
     {
         id: 'AUR-EHR-00087',
-        name: 'Longitudinal ICU Encounters — Critical Care Dataset',
+        name: 'Longitudinal ICU Encounters â€” Critical Care Dataset',
         category: 'EHR',
         subCategory: 'ICU & Critical Care',
         records: '186,000',
@@ -75,7 +75,7 @@ const FeaturedDatasets = () => {
                         <div key={dataset.id} className="dataset-card glass-panel group">
                             <div className="mb-4">
                                 <div className="flex gap-2 mb-3 flex-wrap">
-                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-teal-400 border border-slate-700">
+                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-blue-400 border border-slate-700">
                                         {dataset.category}
                                     </span>
                                     <span className="text-xs px-2 py-1 rounded bg-slate-800/50 text-slate-300 border border-slate-700/50">
@@ -107,10 +107,10 @@ const FeaturedDatasets = () => {
                                     </div>
                                 </div>
                                 <div className="meta-row mt-2 pt-2 border-t border-glass-border">
-                                    <ShieldCheck size={14} className="text-teal-400" />
+                                    <ShieldCheck size={14} className="text-blue-400" />
                                     <div className="flex gap-1 flex-wrap">
                                         {dataset.compliance.map((comp) => (
-                                            <span key={comp} className="text-xs text-teal-300">{comp}</span>
+                                            <span key={comp} className="text-xs text-blue-300">{comp}</span>
                                         ))}
                                     </div>
                                 </div>

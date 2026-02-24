@@ -4,7 +4,8 @@ import ComplianceBar from '../components/Home/ComplianceBar';
 import CategoryShowcase from '../components/Home/CategoryShowcase';
 import FeaturedDatasets from '../components/Home/FeaturedDatasets';
 import HowItWorks from '../components/Home/HowItWorks';
-import TestimonialsNews from '../components/Home/TestimonialsNews';
+import LatestAINews from '../components/Home/LatestAINews';
+import Team from '../components/Home/Team';
 
 const Home = () => {
     return (
@@ -14,7 +15,8 @@ const Home = () => {
             <CategoryShowcase />
             <FeaturedDatasets />
             <HowItWorks />
-            <TestimonialsNews />
+            <Team />
+            <LatestAINews />
         </div>
     );
 };

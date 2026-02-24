@@ -7,7 +7,7 @@ const ComplianceBar = () => {
         <div className="compliance-bar-wrapper">
             <div className="compliance-bar glass-panel">
                 <div className="compliance-item">
-                    <ShieldCheck className="text-teal-400" size={20} />
+                    <ShieldCheck className="text-blue-400" size={20} />
                     <div>
                         <div className="compliance-title">HIPAA Compliant</div>
                         <div className="compliance-desc">Safe Harbor / Expert Determination</div>

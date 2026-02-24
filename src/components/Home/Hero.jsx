@@ -12,7 +12,7 @@ const Hero = () => {
 
             <div className="hero-content">
                 <div className="inline-badge mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                    <ShieldCheck size={16} className="text-teal-400" />
+                    <ShieldCheck size={16} className="text-blue-400" />
                     <span>The World's Most Trusted Medical Dataset Platform</span>
                 </div>
 
@@ -36,7 +36,7 @@ const Hero = () => {
                 {/* Platform Stats */}
                 <div className="hero-stats animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                     <div className="stat-card glass-panel">
-                        <Database className="text-teal-400 mb-2" size={24} />
+                        <Database className="text-blue-400 mb-2" size={24} />
                         <div className="stat-value">500+</div>
                         <div className="stat-label">Datasets Available</div>
                     </div>
@@ -51,7 +51,7 @@ const Hero = () => {
                         <div className="stat-label">Medical Sub-Domains</div>
                     </div>
                     <div className="stat-card glass-panel">
-                        <ShieldCheck className="text-green-400 mb-2" size={24} />
+                        <ShieldCheck className="text-blue-400 mb-2" size={24} />
                         <div className="stat-value text-sm font-semibold">HIPAA / GDPR</div>
                         <div className="stat-label">Compliance Certified</div>
                     </div>

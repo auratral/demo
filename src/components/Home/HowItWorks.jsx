@@ -26,7 +26,7 @@ const steps = [
 
 const HowItWorks = () => {
     return (
-        <section className="py-24 bg-slate-900 border-y border-glass-border">
+        <section className="py-24 bg-transparent border-y border-glass-border">
             <div className="container mx-auto px-8 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl font-bold mb-4 text-primary">How Auratral Works</h2>
@@ -37,7 +37,7 @@ const HowItWorks = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
                     {/* Connecting line for larger screens */}
-                    <div className="hidden lg:block absolute top-[2.5rem] left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-teal-400/20 via-purple-500/20 to-teal-400/20 z-0"></div>
+                    <div className="hidden lg:block absolute top-[2.5rem] left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-blue-400/20 via-purple-500/20 to-blue-400/20 z-0"></div>
 
                     {steps.map((step, idx) => {
                         const Icon = step.icon;

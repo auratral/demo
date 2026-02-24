@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Star, ShieldCheck, Database, Download, Code2, Box, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const DatasetDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
 
     // Realistically we'd fetch this based on the ID, but hardcoded mock for the MVP flow.
     const dataset = {
         id: id || 'AUR-EHR-00087',
-        name: 'Longitudinal ICU Encounters — Critical Care Dataset',
+        name: 'Longitudinal ICU Encounters â€” Critical Care Dataset',
         source: 'Multi-site Academic Medical Center Network',
         category: 'EHR',
         subCategory: 'ICU & Critical Care',
@@ -28,20 +31,31 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
 
     const [activeTab, setActiveTab] = useState('overview');
 
+    const handleProtectedAction = (e, path) => {
+        e.preventDefault();
+        if (!user) {
+            navigate('/login');
+        } else if (path) {
+            navigate(path);
+        } else {
+            alert('This action requires a simulated backend response.');
+        }
+    };
+
     return (
-        <div className="pt-32 pb-16 min-h-screen bg-slate-900">
+        <div className="pt-32 pb-16 min-h-screen">
 
             {/* Header context */}
             <div className="bg-slate-800/50 border-b border-glass-border pt-6 pb-12 mb-8">
                 <div className="container mx-auto px-8">
-                    <Link to="/gallery" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-teal-400 mb-6 transition-colors">
+                    <Link to="/gallery" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-400 mb-6 transition-colors">
                         <ArrowLeft size={16} /> Back to Gallery
                     </Link>
 
                     <div className="flex flex-col lg:flex-row gap-8 justify-between items-start">
                         <div className="max-w-3xl">
                             <div className="flex gap-2 mb-4">
-                                <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-teal-400 border border-slate-700">{dataset.category}</span>
+                                <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-blue-400 border border-slate-700">{dataset.category}</span>
                                 <span className="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">{dataset.subCategory}</span>
                                 <span className="text-xs px-2 py-1 rounded bg-slate-900 text-slate-400 border border-slate-700 font-mono">{dataset.id}</span>
                             </div>
@@ -56,7 +70,7 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
                                 </div>
                                 <div className="w-1 h-1 rounded-full bg-slate-600"></div>
                                 <div className="flex items-center gap-2 text-slate-400">
-                                    <ShieldCheck size={16} className="text-teal-500" /> Auratral Compliance Verified
+                                    <ShieldCheck size={16} className="text-blue-500" /> Auratral Compliance Verified
                                 </div>
                             </div>
 
@@ -71,17 +85,23 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
                                 <span className="text-slate-500 text-sm">/ subset</span>
                             </div>
 
-                            <Link to="/customize" className="w-full btn btn-primary py-3 justify-center mb-3">
+                            <button
+                                onClick={(e) => handleProtectedAction(e, '/customize')}
+                                className="w-full btn btn-primary py-3 justify-center mb-3 cursor-pointer text-center block"
+                            >
                                 Customize Cohort & Buy
-                            </Link>
-                            <button className="w-full btn btn-outline py-2 text-sm justify-center mb-6">
+                            </button>
+                            <button
+                                onClick={(e) => handleProtectedAction(e, null)}
+                                className="w-full btn btn-outline py-2 text-sm justify-center mb-6 cursor-pointer text-center block"
+                            >
                                 Request Free Data Sample
                             </button>
 
                             <div className="space-y-3 pt-4 border-t border-glass-border text-sm text-slate-300">
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-teal-400" /> {dataset.records} Patient Records</div>
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-teal-400" /> {dataset.variables} Clinical Variables</div>
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-teal-400" /> Medical API Access</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.records} Patient Records</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.variables} Clinical Variables</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> Medical API Access</div>
                             </div>
                         </div>
                     </div>
@@ -102,7 +122,7 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
                             </div>
                             <div>
                                 <div className="text-xs text-slate-500 mb-1">Auratral Quality Score (0-100)</div>
-                                <div className="text-teal-400 text-lg font-bold flex items-baseline gap-1">
+                                <div className="text-blue-400 text-lg font-bold flex items-baseline gap-1">
                                     {dataset.qualityScore} <span className="text-xs font-normal text-slate-500">/ High Completeness</span>
                                 </div>
                             </div>
@@ -141,7 +161,7 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
                                 <p className="text-xs text-slate-400 mb-4">Paginated, queryable access via Auratral keys.</p>
                                 <div className="flex flex-wrap justify-center gap-1 mt-auto">
                                     <span className="text-[10px] bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-300">JSON</span>
-                                    <span className="text-[10px] bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-teal-400 font-semibold border-teal-500/30">FHIR R4</span>
+                                    <span className="text-[10px] bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-blue-400 font-semibold border-blue-500/30">FHIR R4</span>
                                 </div>
                             </div>
 

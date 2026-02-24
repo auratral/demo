@@ -47,15 +47,15 @@ const Gallery = () => {
     );
 
     return (
-        <div className="pt-24 pb-24 min-h-screen bg-slate-900 font-sans relative overflow-hidden">
+        <div className="pt-24 pb-24 min-h-screen font-sans relative overflow-hidden">
             {/* Background Glows */}
-            <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+            <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
             <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
 
             {/* Gallery Hero Section */}
             <div className="relative z-10 container mx-auto px-8 pt-16 pb-12 text-center max-w-4xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/50 text-xs font-semibold text-teal-400 mb-6">
-                    <Activity size={14} className="text-teal-400" /> Live Data Network
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/50 text-xs font-semibold text-blue-400 mb-6">
+                    <Activity size={14} className="text-blue-400" /> Live Data Network
                 </div>
                 <h1 className="text-4xl md:text-6xl font-extrabold text-primary mb-6 tracking-tight leading-tight">
                     Discover <span className="text-gradient">Premium Healthcare Data</span>
@@ -66,7 +66,7 @@ const Gallery = () => {
 
                 {/* Centered Search Bar */}
                 <div className="relative max-w-2xl mx-auto group">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
                     <div className="relative flex items-center bg-slate-900 border border-slate-700 rounded-full p-2 pl-4 shadow-2xl">
                         <Search className="text-slate-400" size={24} />
                         <input
@@ -76,7 +76,7 @@ const Gallery = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <button className="bg-gradient-to-r from-teal-500 to-purple-500 text-white font-semibold py-3 px-8 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all text-sm tracking-wide">
+                        <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-3 px-8 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all text-sm tracking-wide">
                             Search
                         </button>
                     </div>
@@ -94,7 +94,7 @@ const Gallery = () => {
                                 <Filter size={18} className="text-purple-400" /> Filters
                             </h3>
                             <button
-                                className="text-xs text-slate-500 hover:text-teal-400 font-semibold"
+                                className="text-xs text-slate-500 hover:text-blue-400 font-semibold"
                                 onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
                             >
                                 Clear All
@@ -108,11 +108,11 @@ const Gallery = () => {
                             <div className="space-y-3">
                                 {categories.map(cat => (
                                     <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${activeCategory === cat ? 'bg-teal-500 border-teal-500' : 'bg-slate-800 border-slate-600 group-hover:border-teal-400'}`}>
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${activeCategory === cat ? 'bg-blue-500 border-blue-500' : 'bg-slate-800 border-slate-600 group-hover:border-blue-400'}`}>
                                             {activeCategory === cat && <div className="w-2.5 h-2.5 bg-slate-900 rounded-sm"></div>}
                                         </div>
                                         <span
-                                            className={`text-sm tracking-wide ${activeCategory === cat ? 'text-teal-400 font-bold' : 'text-slate-300 font-medium group-hover:text-primary transition-colors'}`}
+                                            className={`text-sm tracking-wide ${activeCategory === cat ? 'text-blue-400 font-bold' : 'text-slate-300 font-medium group-hover:text-primary transition-colors'}`}
                                             onClick={() => setActiveCategory(cat)}
                                         >
                                             {cat}
@@ -168,9 +168,9 @@ const Gallery = () => {
 
                     <div className="flex flex-col gap-6">
                         {filteredDatasets.map(dataset => (
-                            <div key={dataset.id} className="group relative bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 flex flex-col xl:flex-row gap-6 hover:border-teal-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-xl overflow-hidden">
+                            <div key={dataset.id} className="group relative bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 sm:p-8 flex flex-col xl:flex-row gap-6 hover:border-blue-500/50 hover:bg-slate-800/60 transition-all duration-300 shadow-xl overflow-hidden">
                                 {/* Hover Glow */}
-                                <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                                <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
                                 <div className="flex-grow relative z-10">
                                     <div className="flex flex-wrap gap-3 items-center mb-3">
@@ -181,7 +181,7 @@ const Gallery = () => {
                                     </div>
 
                                     <Link to={`/dataset/${dataset.id}`}>
-                                        <h3 className="text-2xl font-bold text-primary mb-3 group-hover:text-teal-400 transition-colors inline-block">{dataset.name}</h3>
+                                        <h3 className="text-2xl font-bold text-primary mb-3 group-hover:text-blue-400 transition-colors inline-block">{dataset.name}</h3>
                                     </Link>
 
                                     <p className="text-slate-400 text-sm mb-6 leading-relaxed max-w-3xl">{dataset.description}</p>
@@ -192,7 +192,7 @@ const Gallery = () => {
                                         </div>
                                         <div className="w-px h-4 bg-slate-700 hidden sm:block"></div>
                                         <div className="flex items-center gap-2 text-slate-300 font-medium">
-                                            <ShieldCheck size={16} className="text-teal-500" /> {dataset.compliance.join(', ')}
+                                            <ShieldCheck size={16} className="text-blue-500" /> {dataset.compliance.join(', ')}
                                         </div>
                                         <div className="w-px h-4 bg-slate-700 hidden sm:block"></div>
                                         <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ const Gallery = () => {
                                         </div>
                                     </div>
 
-                                    <Link to={`/dataset/${dataset.id}`} className="btn btn-primary w-full justify-center py-3 text-sm shadow-lg shadow-teal-500/20 group-hover:scale-[1.02] transition-transform">
+                                    <Link to={`/dataset/${dataset.id}`} className="btn btn-primary w-full justify-center py-3 text-sm shadow-lg shadow-blue-500/20 group-hover:scale-[1.02] transition-transform">
                                         View Details
                                     </Link>
                                 </div>

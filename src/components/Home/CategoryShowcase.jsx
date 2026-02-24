@@ -31,7 +31,7 @@ const CategoryShowcase = () => {
                         return (
                             <Link to={`/gallery?category=${category.id}`} key={category.id} className="category-card glass-panel group">
                                 <div className="card-top flex items-start justify-between mb-4">
-                                    <div className="icon-wrapper bg-slate-800/80 p-3 rounded-xl border border-glass-border text-teal-400 group-hover:text-purple-400 transition-colors">
+                                    <div className="icon-wrapper bg-slate-800/80 p-3 rounded-xl border border-glass-border text-blue-400 group-hover:text-purple-400 transition-colors">
                                         <Icon size={24} />
                                     </div>
                                     <span className="badge-count bg-slate-800 text-xs px-2 py-1 rounded-full border border-slate-700 text-slate-300">
@@ -39,7 +39,7 @@ const CategoryShowcase = () => {
                                     </span>
                                 </div>
 
-                                <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-teal-400 transition-colors">
+                                <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-blue-400 transition-colors">
                                     {category.name}
                                 </h3>
 

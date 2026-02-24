@@ -36,7 +36,7 @@
     left: -100%;
     width: 100%;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-teal), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
     transition: left 0.5s ease;
 }
 
