@@ -5,5 +5,5 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
     plugins: [react(), tailwindcss()],
-    base: command === 'build' ? '/auratral_MVP/' : '/',
+    base: command === 'build' ? '/demo/' : '/',
 }))
