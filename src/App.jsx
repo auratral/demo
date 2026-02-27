@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
 import { AuthProvider } from './context/AuthContext';
@@ -79,6 +80,29 @@ function App() {
                             } />
                         </Routes>
                     </main>
+
+                    {/* Global Demo Environment Warning Badge */}
+                    <div className="fixed bottom-6 left-6 z-50 pointer-events-none hidden md:block">
+                        <div className="bg-slate-900/80 backdrop-blur-md border border-purple-500/30 px-4 py-3 rounded-2xl shadow-2xl flex items-start gap-3 max-w-xs pointer-events-auto transition-all hover:border-purple-500/60 hover:bg-slate-900/95">
+                            <AlertTriangle size={18} className="text-purple-400 mt-0.5 shrink-0" />
+                            <div>
+                                <div className="text-xs font-bold text-slate-200 mb-0.5 tracking-wide">DEMO ENVIRONMENT</div>
+                                <div className="text-[11px] text-slate-400 leading-relaxed font-medium">
+                                    All datasets, capabilities, and clinical metrics are for demonstration purposes only.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Mobile optimized version - centered at bottom */}
+                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50 pointer-events-none md:hidden">
+                        <div className="bg-slate-900/90 backdrop-blur-xl border border-purple-500/40 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-auto">
+                            <AlertTriangle size={16} className="text-purple-400 shrink-0" />
+                            <div className="text-[10px] text-slate-300 leading-tight font-medium">
+                                <span className="font-bold text-slate-200 mr-1">Demo Platform:</span>
+                                Data is for demonstration only.
+                            </div>
+                        </div>
+                    </div>
 
                     <Footer />
                 </div>
