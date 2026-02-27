@@ -28,7 +28,7 @@ function App() {
                 <motion.div
                     className="fixed inset-0 -z-50 w-full opacity-60 pointer-events-none"
                     style={{
-                        backgroundImage: "url('/subtle_bg_pattern.png')",
+                        backgroundImage: `url('${import.meta.env.BASE_URL}subtle_bg_pattern.png')`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center top',
                         backgroundRepeat: 'repeat-y',
