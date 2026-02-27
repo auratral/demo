@@ -27,6 +27,16 @@ const ComplianceBar = () => {
                 <div className="compliance-divider"></div>
 
                 <div className="compliance-item">
+                    <ShieldCheck className="text-green-400" size={20} />
+                    <div>
+                        <div className="compliance-title">DPDP Act India</div>
+                        <div className="compliance-desc">Digital Personal Data Protection</div>
+                    </div>
+                </div>
+
+                <div className="compliance-divider"></div>
+
+                <div className="compliance-item">
                     <CheckCircle className="text-pink-400" size={20} />
                     <div>
                         <div className="compliance-title">ISO 27001 Status</div>

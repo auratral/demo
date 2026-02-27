@@ -15,7 +15,7 @@ const Footer = () => {
                             <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Auratral" className="h-8 w-auto mix-blend-screen opacity-80 hover:opacity-100 transition-opacity" />
                         </Link>
                         <p className="text-xs text-slate-500">
-                            &copy; {new Date().getFullYear()} Auratral Inc. All rights reserved.
+                            &copy; {new Date().getFullYear()} Auratral Dataspace Pvt Ltd. All rights reserved.
                         </p>
                     </div>
 
@@ -37,6 +37,10 @@ const Footer = () => {
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-xs text-slate-300 shadow-sm">
                             <Lock size={14} className="text-purple-400" />
                             GDPR
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-xs text-slate-300 shadow-sm">
+                            <ShieldCheck size={14} className="text-green-400" />
+                            DPDP
                         </div>
                     </div>
 

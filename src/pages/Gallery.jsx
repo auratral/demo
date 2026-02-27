@@ -5,32 +5,32 @@ import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, Chev
 const allDatasets = [
     {
         id: 'AUR-EHR-00087', name: 'Longitudinal ICU Encounters', category: 'EHR', records: '186,000',
-        formats: ['CSV', 'Parquet', 'FHIR'], compliance: ['HIPAA Safe Harbor'], rating: 4.9, price: 149,
+        formats: ['CSV', 'Parquet', 'FHIR'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.9, price: 12367,
         delivery: ['api', 'docker'], description: 'Comprehensive intensive care unit records including vitals and outcomes.'
     },
     {
         id: 'AUR-IMG-00143', name: 'High-Res Chest X-Ray Annotations', category: 'Imaging', records: '45,200',
-        formats: ['DICOM', 'JSON'], compliance: ['HIPAA Safe Harbor'], rating: 4.8, price: 299,
+        formats: ['DICOM', 'JSON'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.8, price: 24817,
         delivery: ['download'], description: 'Expert radiologist annotated chest x-rays for pneumonia detection.'
     },
     {
         id: 'AUR-PVM-00021', name: 'FDA FAERS Curated Extract', category: 'Pharma', records: '2,400,000',
-        formats: ['CSV', 'SQL'], compliance: ['Aggregated'], rating: 4.7, price: 599,
+        formats: ['CSV', 'SQL'], compliance: ['Aggregated'], rating: 4.7, price: 49717,
         delivery: ['api', 'docker', 'download'], description: 'Post-market drug safety and adverse reaction monitoring extract.'
     },
     {
         id: 'AUR-GEN-00092', name: 'Cancer Genome Atlas Subset', category: 'Genomics', records: '12,500',
-        formats: ['VCF', 'CSV'], compliance: ['HIPAA Safe Harbor'], rating: 5.0, price: 'Custom',
+        formats: ['VCF', 'CSV'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 5.0, price: 'Custom',
         delivery: ['docker'], description: 'Whole genome sequencing data mapped to clinical oncology outcomes.'
     },
     {
         id: 'AUR-MNT-00034', name: 'PHQ-9 Population Cohort', category: 'Mental Health', records: '340,000',
-        formats: ['JSON', 'CSV'], compliance: ['GDPR-Ready', 'HIPAA'], rating: 4.6, price: 199,
+        formats: ['JSON', 'CSV'], compliance: ['GDPR-Ready', 'HIPAA', 'DPDP Compliant'], rating: 4.6, price: 16517,
         delivery: ['download', 'api'], description: 'Large scale depression screening results linked to socioeconomic indicators.'
     },
     {
         id: 'AUR-RLW-00105', name: 'Real-World Diabetes Outcomes', category: 'Trials', records: '56,000',
-        formats: ['Parquet', 'CSV'], compliance: ['HIPAA Safe Harbor'], rating: 4.8, price: 399,
+        formats: ['Parquet', 'CSV'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.8, price: 33117,
         delivery: ['docker', 'api'], description: 'Longitudinal HbA1c tracking and medication adherence in Type 2 Diabetes.'
     }
 ];
@@ -127,7 +127,7 @@ const Gallery = () => {
                                 Compliance Level <ChevronDown size={14} />
                             </h3>
                             <div className="space-y-3">
-                                {['HIPAA Safe Harbor', 'GDPR Article 9 Ready', 'IRB-Compatible DUA'].map(comp => (
+                                {['HIPAA Safe Harbor', 'GDPR Article 9 Ready', 'DPDP Act India', 'IRB-Compatible DUA'].map(comp => (
                                     <label key={comp} className="flex items-center gap-3 cursor-pointer group">
                                         <input type="checkbox" className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900 focus:ring-offset-2 accent-purple-500" />
                                         <span className="text-sm font-medium text-slate-300 group-hover:text-primary transition-colors">{comp}</span>
@@ -213,7 +213,7 @@ const Gallery = () => {
 
                                         <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Starting From</div>
                                         <div className="text-3xl font-bold text-primary">
-                                            {dataset.price === 'Custom' ? 'Custom' : `$${dataset.price}`}
+                                            {dataset.price === 'Custom' ? 'Custom' : `₹${dataset.price.toLocaleString()}`}
                                         </div>
                                     </div>
 

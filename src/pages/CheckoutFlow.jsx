@@ -19,8 +19,8 @@ export const Customize = () => {
     const [dataUpdates, setDataUpdates] = useState(false);
 
     // Pricing calculation
-    const basePrice = 1999;
-    const additionalServicesPrice = (apiAccess ? 499 : 0) + (dataUpdates ? 999 : 0);
+    const basePrice = 165917;
+    const additionalServicesPrice = (apiAccess ? 41417 : 0) + (dataUpdates ? 82917 : 0);
     const total = basePrice + additionalServicesPrice;
 
     return (
@@ -157,14 +157,14 @@ export const Customize = () => {
                                 <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
                                     <input type="checkbox" checked={apiAccess} onChange={() => setApiAccess(!apiAccess)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">API Access <span className="text-xs text-blue-400 ml-2">+$499</span></div>
+                                        <div className="text-primary font-bold">API Access <span className="text-xs text-blue-400 ml-2">+₹41,417</span></div>
                                         <div className="text-xs text-slate-400 mt-1">Real-time data access via REST API</div>
                                     </div>
                                 </label>
                                 <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
                                     <input type="checkbox" checked={dataUpdates} onChange={() => setDataUpdates(!dataUpdates)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">Data Updates <span className="text-xs text-blue-400 ml-2">+$999</span></div>
+                                        <div className="text-primary font-bold">Data Updates <span className="text-xs text-blue-400 ml-2">+₹82,917</span></div>
                                         <div className="text-xs text-slate-400 mt-1">Quarterly dataset updates for 1 year</div>
                                     </div>
                                 </label>
@@ -200,17 +200,17 @@ export const Customize = () => {
                             <div className="space-y-3 mb-6 border-b border-glass-border pb-6 text-sm">
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-400">Base Price</span>
-                                    <span className="text-primary font-medium">${basePrice.toLocaleString()}</span>
+                                    <span className="text-primary font-medium">₹{basePrice.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-400">Additional Services</span>
-                                    <span className="text-primary font-medium">${additionalServicesPrice.toLocaleString()}</span>
+                                    <span className="text-primary font-medium">₹{additionalServicesPrice.toLocaleString()}</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-end mb-8">
                                 <span className="text-lg font-bold text-slate-300">Total</span>
-                                <span className="text-3xl font-bold text-blue-400">${total.toLocaleString()}</span>
+                                <span className="text-3xl font-bold text-blue-400">₹{total.toLocaleString()}</span>
                             </div>
 
                             <div className="space-y-3">
@@ -279,7 +279,7 @@ export const Agreement = () => {
 
                 <div className="space-y-4 mb-8">
                     {[
-                        { id: 'privacy', title: 'Data Protection & Privacy Compliance', text: 'I acknowledge that this dataset contains sensitive health information and agree to comply with all applicable data protection regulations including GDPR, HIPAA, and local privacy laws. I will implement appropriate technical and organizational measures to protect the data from unauthorized access, disclosure, or misuse.' },
+                        { id: 'privacy', title: 'Data Protection & Privacy Compliance', text: 'I acknowledge that this dataset contains sensitive health information and agree to comply with all applicable data protection regulations including GDPR, HIPAA, DPDP Act, and local privacy laws. I will implement appropriate technical and organizational measures to protect the data from unauthorized access, disclosure, or misuse.' },
                         { id: 'nda', title: 'Non-Disclosure Agreement', text: 'I agree to maintain strict confidentiality regarding all data received and will not disclose, share, or distribute any portion of this dataset to third parties without prior written consent from Auratral. This obligation extends to all employees, contractors, and affiliates who may have access to the data.' },
                         { id: 'usage', title: 'Usage Restrictions & Compliance', text: 'I understand that this data is for legitimate research, analysis, or business purposes only. I will not use this data for any illegal activities, discrimination, harassment, or any purpose that could harm individuals or groups. I will not attempt to re-identify anonymized individuals.' },
                         { id: 'security', title: 'Data Security Requirements', text: 'I commit to implementing industry-standard security measures including encryption at rest and in transit, access controls, regular security audits, and secure data disposal procedures. I will immediately report any data breaches or security incidents to Auratral within 24 hours of discovery.' },
@@ -358,7 +358,7 @@ export const Checkout = () => {
                             alert("Payment mocked successfully. Navigating home.");
                             navigate('/');
                         }} className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(45,212,191,0.2)]">
-                            <Lock size={16} /> Pay $149.00
+                            <Lock size={16} /> Pay ₹12,367.00
                         </button>
                         <p className="text-[10px] text-center text-slate-500">Secured by 256-bit SSL encryption</p>
                     </form>
@@ -372,12 +372,12 @@ export const Checkout = () => {
                             <div className="text-xs text-slate-500">AUR-EHR-00087 â€¢ API Delivery</div>
                             <div className="text-[10px] text-blue-400 mt-1">DUA Signed</div>
                         </div>
-                        <div className="text-primary">$149.00</div>
+                        <div className="text-primary">₹12,367.00</div>
                     </div>
 
                     <div className="border-t border-glass-border pt-4 flex justify-between items-center mt-8">
                         <span className="font-bold text-slate-300">Total</span>
-                        <span className="text-2xl font-bold text-primary">$149.00</span>
+                        <span className="text-2xl font-bold text-primary">₹12,367.00</span>
                     </div>
                 </div>
 

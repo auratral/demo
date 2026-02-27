@@ -25,7 +25,7 @@ export const Login = () => {
                             <Activity size={16} className="text-blue-400" />
                         </div>
                         <h3 className="font-bold text-lg text-primary mb-2">Secure API Access</h3>
-                        <p className="text-sm text-slate-400 leading-relaxed">Connect directly to our network of 150+ healthcare providers via REST or GraphQL. HIPAA-compliant endpoints guaranteed.</p>
+                        <p className="text-sm text-slate-400 leading-relaxed">Connect directly to our network of 150+ healthcare providers via REST or GraphQL. HIPAA & DPDP-compliant endpoints guaranteed.</p>
                     </div>
 
                     <div className="glass-panel p-8 backdrop-blur-xl border-t-2 border-t-purple-500 ml-12 relative">
@@ -138,7 +138,7 @@ export const Signup = () => {
                     <ShieldCheck size={48} className="text-purple-400 mx-auto mb-6" />
                     <h2 className="text-3xl font-bold text-primary mb-4">Enterprise-Grade Security</h2>
                     <p className="text-slate-400 text-lg leading-relaxed mb-8">
-                        Join 1,000+ researchers and ML engineers accelerating healthcare innovation. Every dataset is scrutinized to meet HIPAA Safe Harbor and GDPR Article 9 requirements.
+                        Join 1,000+ researchers and ML engineers accelerating healthcare innovation. Every dataset is scrutinized to meet HIPAA Safe Harbor, GDPR Article 9, and DPDP Act requirements.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 text-left">

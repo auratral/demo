@@ -15,7 +15,7 @@ const newsItems = [
     {
         id: 2,
         category: "Regulatory",
-        title: "Understanding HIPAA Expert Determination for AI Model Training",
+        title: "Understanding HIPAA & DPDP Compliance for AI Model Training",
         date: "Feb 10, 2026",
         author: "Sarah Jenkins, VP Compliance",
         excerpt: "As healthcare AI scales, the Safe Harbor de-identification standard is often insufficient for complex longitudinal datasets. We explore how Auratral utilizes Expert Determination to preserve clinical utility while guaranteeing privacy, providing a transparent framework for regulatory review.",

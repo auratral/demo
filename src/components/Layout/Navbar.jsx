@@ -58,7 +58,7 @@ const Navbar = () => {
                 {/* Compliance Badges - Very Important for Medical */}
                 <div className="navbar-compliance">
                     <ShieldCheck size={16} className="text-blue-400" />
-                    <span>HIPAA / GDPR Ready</span>
+                    <span>HIPAA / GDPR / DPDP Ready</span>
                 </div>
 
                 {/* CTAs */}

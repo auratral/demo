@@ -6,6 +6,7 @@ import FeaturedDatasets from '../components/Home/FeaturedDatasets';
 import HowItWorks from '../components/Home/HowItWorks';
 import LatestAINews from '../components/Home/LatestAINews';
 import Team from '../components/Home/Team';
+import Contact from '../components/Home/Contact';
 
 const Home = () => {
     return (
@@ -17,6 +18,7 @@ const Home = () => {
             <HowItWorks />
             <Team />
             <LatestAINews />
+            <Contact />
         </div>
     );
 };

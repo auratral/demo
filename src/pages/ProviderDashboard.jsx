@@ -118,7 +118,7 @@ const OverviewTab = () => (
                 <div className="flex justify-between items-start mb-4">
                     <div className="p-3 bg-blue-500/10 rounded-lg"><DollarSign className="text-blue-400" size={24} /></div>
                 </div>
-                <div className="text-3xl font-bold text-primary mb-1">$45.2k</div>
+                <div className="text-3xl font-bold text-primary mb-1">₹37.5L</div>
                 <div className="text-sm text-slate-400 font-medium">Credits Earned (YTD)</div>
             </div>
         </div>
@@ -210,7 +210,7 @@ const UploadDatasetTab = () => {
                 <h2 className="text-2xl font-bold text-primary mb-2 flex items-center gap-3">
                     <UploadCloud className="text-blue-400" /> Upload New Dataset
                 </h2>
-                <p className="text-slate-400">Provision a new dataset to the Auratral marketplace. All uploads go through automated HIPAA/GDPR compliance checks.</p>
+                <p className="text-slate-400">Provision a new dataset to the Auratral marketplace. All uploads go through automated HIPAA/GDPR/DPDP compliance checks.</p>
             </div>
 
             <form className="space-y-8">
@@ -327,7 +327,7 @@ const UploadDatasetTab = () => {
                     <div className="bg-slate-800/30 p-5 rounded-xl border border-slate-700/50 space-y-3">
                         <label className="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-600 text-blue-500 bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900" />
-                            <span className="text-sm text-slate-300">I certify that this dataset has been completely de-identified in accordance with the HIPAA Privacy Rule (Safe Harbor method or Expert Determination).</span>
+                            <span className="text-sm text-slate-300">I certify that this dataset has been completely de-identified in accordance with the HIPAA Privacy Rule (Safe Harbor method or Expert Determination) and DPDP Act.</span>
                         </label>
                         <label className="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-600 text-blue-500 bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900" />

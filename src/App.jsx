@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
 import { AuthProvider } from './context/AuthContext';
@@ -17,10 +18,25 @@ import Dashboard from './pages/Dashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 
 function App() {
+    const { scrollY } = useScroll();
+    // Parallax effect: moves up at 20% the speed of normal scroll
+    const bgY = useTransform(scrollY, [0, 5000], [0, -1000]);
+
     return (
         <AuthProvider>
             <HashRouter>
-                <div className="flex flex-col min-h-screen">
+                <motion.div
+                    className="fixed inset-0 -z-50 w-full opacity-60 pointer-events-none"
+                    style={{
+                        backgroundImage: "url('/subtle_bg_pattern.png')",
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center top',
+                        backgroundRepeat: 'repeat-y',
+                        height: '200vh',
+                        y: bgY
+                    }}
+                />
+                <div className="flex flex-col min-h-screen relative z-0">
                     <Navbar />
 
                     <main className="flex-grow">

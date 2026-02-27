@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Newspaper, Activity, Database, HeartPulse } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const mainNews = {
@@ -36,12 +37,37 @@ const newsArticles = [
 ];
 
 const LatestAINews = () => {
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 30, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: { type: "spring", stiffness: 100, damping: 12 }
+        }
+    };
+
     return (
-        <section className="py-24">
-            <div className="container mx-auto px-8 grid grid-cols-1 xl:grid-cols-12 gap-16">
+        <section className="py-24 overflow-hidden">
+            <motion.div
+                className="container mx-auto px-8 grid grid-cols-1 xl:grid-cols-12 gap-16"
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
+            >
 
                 {/* Main Featured News Column */}
-                <div className="xl:col-span-8 flex flex-col h-full">
+                <motion.div variants={itemVariants} className="xl:col-span-8 flex flex-col h-full">
                     <div className="flex justify-between items-end mb-8">
                         <div>
                             <h2 className="text-3xl font-bold text-primary">Latest in AI Healthcare</h2>
@@ -75,10 +101,10 @@ const LatestAINews = () => {
                             </Link>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Additional News & Subscribe Column */}
-                <div className="xl:col-span-4 flex flex-col h-full">
+                <motion.div variants={itemVariants} className="xl:col-span-4 flex flex-col h-full">
                     <div className="flex justify-between items-end mb-8">
                         <h2 className="text-3xl font-bold text-primary opacity-0 select-none">More</h2> {/* Spacer to align with left */}
                     </div>
@@ -112,9 +138,9 @@ const LatestAINews = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-            </div>
+            </motion.div>
         </section>
     );
 };

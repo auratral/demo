@@ -20,9 +20,9 @@ const DatasetDetail = () => {
         records: '186,000',
         variables: 247,
         formats: ['CSV', 'Parquet', 'JSON', 'FHIR R4'],
-        compliance: ['HIPAA Safe Harbor', 'GDPR Article 9 Ready'],
+        compliance: ['HIPAA Safe Harbor', 'GDPR Article 9 Ready', 'DPDP Compliant'],
         updateFrequency: 'Annually Refreshed',
-        price: 149,
+        price: 12367,
         description: `A comprehensive, de-identified longitudinal dataset of intensive care unit (ICU) encounters. This clinical corpus includes high-resolution temporal data covering vital signs, laboratory measurements, medication administration records, fluid balance, and clinical notes spanning over a decade of admissions. 
     
 Designed specifically for training clinical prediction models (e.g., sepsis onset, mortality risk, length of stay), epidemiological research, and health economics analysis.`,
@@ -81,7 +81,7 @@ Designed specifically for training clinical prediction models (e.g., sepsis onse
                         <div className="glass-panel p-6 w-full lg:w-80 shrink-0 relative lg:-mt-4 lg:sticky lg:top-32 border-purple-500/20">
                             <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Base Research License</div>
                             <div className="flex items-baseline gap-2 mb-4">
-                                <span className="text-4xl font-bold text-primary">${dataset.price}</span>
+                                <span className="text-4xl font-bold text-primary">₹{dataset.price.toLocaleString()}</span>
                                 <span className="text-slate-500 text-sm">/ subset</span>
                             </div>
 

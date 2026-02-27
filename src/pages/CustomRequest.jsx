@@ -15,7 +15,7 @@ const CustomRequest = () => {
                     </div>
                     <h2 className="text-3xl font-bold text-primary mb-4">Request Submitted</h2>
                     <p className="text-secondary mb-8 leading-relaxed">
-                        Your custom dataset request has been securely forwarded to our Clinical Data Operations team. We will review the feasibility under HIPAA Safe Harbor rules and return a preliminary quote within 5 business days.
+                        Your custom dataset request has been securely forwarded to our Clinical Data Operations team. We will review the feasibility under HIPAA Safe Harbor & DPDP rules and return a preliminary quote within 5 business days.
                     </p>
                     <button onClick={() => navigate('/gallery')} className="btn btn-primary justify-center w-full sm:w-auto">
                         Return to Gallery
@@ -39,7 +39,7 @@ const CustomRequest = () => {
                         <div className="text-left">
                             <div className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Guaranteed</div>
                             <div className="text-sm font-bold text-primary flex items-center gap-2">
-                                <ShieldCheck size={16} className="text-blue-400" /> HIPAA Compliant
+                                <ShieldCheck size={16} className="text-blue-400" /> HIPAA & DPDP Compliant
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ const CustomRequest = () => {
                                     <div className="mt-8 bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 flex items-start gap-4">
                                         <ShieldCheck className="text-blue-500 shrink-0 mt-0.5" size={24} />
                                         <div className="text-sm text-slate-300 leading-relaxed">
-                                            By submitting this request, you understand that all datasets sourced by Auratral are subject to strict de-identification standards under the HIPAA Privacy Rule.
+                                            By submitting this request, you understand that all datasets sourced by Auratral are subject to strict de-identification standards under the HIPAA Privacy Rule & DPDP Act.
                                         </div>
                                     </div>
                                 </div>
