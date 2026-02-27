@@ -11,10 +11,20 @@
 
 .navbar.scrolled {
     padding: 0.75rem 0;
-    background: var(--bg-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--glass-border);
     border-radius: 0;
-    /* Override generic glass curve for nav */
+}
+
+@media (max-width: 768px) {
+    .navbar.scrolled.glass-panel {
+        background: linear-gradient(to bottom, rgba(42, 15, 66, 0.9) 0%, rgba(42, 15, 66, 0) 100%) !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
 }
 
 .navbar-container {
