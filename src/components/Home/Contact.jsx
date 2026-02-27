@@ -42,7 +42,7 @@ const Contact = () => {
             <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none transform -translate-y-1/2"></div>
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none"></div>
 
-            <div className="container mx-auto px-8 relative z-10">
+            <div className="container mx-auto px-4 md:px-8 relative z-10">
 
                 {/* Section Header */}
                 <div className="text-center max-w-2xl mx-auto mb-16">

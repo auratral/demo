@@ -34,7 +34,6 @@ const Hero = () => {
         <section className="hero-section overflow-hidden">
             {/* Animated Background Elements */}
             <motion.div className="hero-bg-gradient" style={{ y: y1, scale: scaleBg, opacity: opacityBg }}></motion.div>
-            <motion.div className="hero-grid" style={{ scale: scaleBg }}></motion.div>
 
             <motion.div
                 className="hero-content"

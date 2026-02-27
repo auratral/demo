@@ -42,21 +42,23 @@
     font-size: 1.8rem;
 }
 
-.navbar-links {
-    display: flex;
-    gap: 2rem;
-}
+@media (min-width: 1024px) {
+    .navbar-links {
+        display: flex;
+        gap: 2rem;
+    }
 
-.navbar-links a {
-    text-decoration: none;
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: color 0.2s ease;
-}
+    .navbar-links a {
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s ease;
+    }
 
-.navbar-links a:hover {
-    color: var(--text-primary);
+    .navbar-links a:hover {
+        color: var(--text-primary);
+    }
 }
 
 .navbar-search {

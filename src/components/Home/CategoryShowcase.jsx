@@ -38,7 +38,7 @@ const CategoryShowcase = () => {
 
     return (
         <section className="categories-section">
-            <div className="container mx-auto px-8">
+            <div className="container mx-auto px-4 md:px-8">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"

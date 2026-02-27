@@ -59,7 +59,7 @@ const LatestAINews = () => {
     return (
         <section className="py-24 overflow-hidden">
             <motion.div
-                className="container mx-auto px-8 grid grid-cols-1 xl:grid-cols-12 gap-16"
+                className="container mx-auto px-4 md:px-8 grid grid-cols-1 xl:grid-cols-12 gap-16"
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"

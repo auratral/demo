@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+html,
+body,
+#root {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
 :root {
     /* Premium Deep Purple AI Theme Variables */
     --bg-base: #0f0518;

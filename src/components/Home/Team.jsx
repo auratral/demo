@@ -53,7 +53,7 @@ const Team = () => {
             {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none"></div>
 
-            <div className="container mx-auto px-8 relative z-10 max-w-7xl">
+            <div className="container mx-auto px-4 md:px-8 relative z-10 max-w-7xl">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}
