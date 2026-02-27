@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const teamMembers = [
     {
-        name: "Christopher Jeremy A W",
+        name: "Christopher Jeremy",
         role: "Founder, CEO",
         description: "The Big Brain",
         image: "christopher.png"
