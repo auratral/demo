@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info } from 'lucide-react';
 
 export const Customize = () => {
@@ -217,7 +217,16 @@ export const Customize = () => {
                                 <button
                                     onClick={() => {
                                         if (!format) alert("Please select a format first.");
-                                        else navigate('/agreement');
+                                        else navigate('/agreement', {
+                                            state: {
+                                                total,
+                                                basePrice,
+                                                additionalServicesPrice,
+                                                records,
+                                                format,
+                                                districts,
+                                            }
+                                        });
                                     }}
                                     className="w-full btn btn-primary py-3.5 justify-center shadow-lg shadow-blue-500/20 text-sm tracking-wide"
                                 >
@@ -246,6 +255,7 @@ export const Customize = () => {
 
 export const Agreement = () => {
     const navigate = useNavigate();
+    const { state: orderState } = useLocation();
     const [agreements, setAgreements] = useState({
         privacy: false,
         nda: false,
@@ -315,7 +325,7 @@ export const Agreement = () => {
                 <div className="flex justify-end gap-4 border-t border-glass-border pt-6">
                     <button onClick={() => navigate(-1)} className="btn btn-outline py-3 px-6">Go Back</button>
                     <button
-                        onClick={() => navigate('/checkout')}
+                        onClick={() => navigate('/checkout', { state: orderState })}
                         className={`btn py-3 px-8 transition-all ${allAgreed ? 'btn-primary bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
                         disabled={!allAgreed}
                     >
@@ -329,6 +339,14 @@ export const Agreement = () => {
 
 export const Checkout = () => {
     const navigate = useNavigate();
+    const { state: order } = useLocation();
+    const total = order?.total ?? 0;
+    const basePrice = order?.basePrice ?? 0;
+    const addons = order?.additionalServicesPrice ?? 0;
+    const records = order?.records ?? '--';
+    const format = order?.format ?? '--';
+    const districts = order?.districts ?? '--';
+    const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}.00`;
     return (
         <div className="pt-32 pb-16 min-h-screen">
             <div className="container mx-auto px-8 max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -358,7 +376,7 @@ export const Checkout = () => {
                             alert("Payment mocked successfully. Navigating home.");
                             navigate('/');
                         }} className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(45,212,191,0.2)]">
-                            <Lock size={16} /> Pay ₹12,367.00
+                            <Lock size={16} /> Pay {fmt(total)}
                         </button>
                         <p className="text-[10px] text-center text-slate-500">Secured by 256-bit SSL encryption</p>
                     </form>
@@ -366,18 +384,34 @@ export const Checkout = () => {
 
                 <div className="glass-panel p-8 h-fit">
                     <h3 className="font-bold text-primary mb-4 border-b border-glass-border pb-2">Order Summary</h3>
-                    <div className="flex justify-between items-start mb-4 text-sm">
-                        <div>
-                            <div className="text-slate-300 font-medium">Longitudinal ICU Encounters</div>
-                            <div className="text-xs text-slate-500">AUR-EHR-00087 â€¢ API Delivery</div>
-                            <div className="text-[10px] text-blue-400 mt-1">DUA Signed</div>
+                    <div className="space-y-3 text-sm mb-4">
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Records</span>
+                            <span className="text-primary font-medium">{typeof records === 'number' ? records.toLocaleString('en-IN') : records}</span>
                         </div>
-                        <div className="text-primary">₹12,367.00</div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Format</span>
+                            <span className="text-primary font-medium">{format}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-400">Districts</span>
+                            <span className="text-primary font-medium">{districts}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-glass-border pt-3">
+                            <span className="text-slate-400">Base Price</span>
+                            <span className="text-primary font-medium">{fmt(basePrice)}</span>
+                        </div>
+                        {addons > 0 && (
+                            <div className="flex justify-between">
+                                <span className="text-slate-400">Add-ons</span>
+                                <span className="text-primary font-medium">{fmt(addons)}</span>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="border-t border-glass-border pt-4 flex justify-between items-center mt-8">
+                    <div className="border-t border-glass-border pt-4 flex justify-between items-center">
                         <span className="font-bold text-slate-300">Total</span>
-                        <span className="text-2xl font-bold text-primary">₹12,367.00</span>
+                        <span className="text-2xl font-bold text-primary">{fmt(total)}</span>
                     </div>
                 </div>
 

@@ -17,6 +17,7 @@ import { Customize, Agreement, Checkout } from './pages/CheckoutFlow';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
+import Pricing from './pages/Pricing';
 
 function App() {
     const { scrollY } = useScroll();
@@ -58,6 +59,7 @@ function App() {
                             {/* Informational Pages */}
                             <Route path="/news" element={<News />} />
                             <Route path="/news/:id" element={<NewsArticle />} />
+                            <Route path="/pricing" element={<Pricing />} />
 
                             {/* Authentication & Dashboard */}
                             <Route path="/login" element={<Login />} />

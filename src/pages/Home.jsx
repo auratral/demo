@@ -7,6 +7,7 @@ import HowItWorks from '../components/Home/HowItWorks';
 import LatestAINews from '../components/Home/LatestAINews';
 import Team from '../components/Home/Team';
 import Contact from '../components/Home/Contact';
+import FAQ from '../components/Home/FAQ';
 
 const Home = () => {
     return (
@@ -18,6 +19,7 @@ const Home = () => {
             <HowItWorks />
             <Team />
             <LatestAINews />
+            <FAQ />
             <Contact />
         </div>
     );
