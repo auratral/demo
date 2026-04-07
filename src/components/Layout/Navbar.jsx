@@ -49,6 +49,11 @@ const Navbar = () => {
                     <Link to="/gallery">Dataset Gallery</Link>
                     <Link to="/custom-request">Custom Request</Link>
                     <Link to="/news">News</Link>
+                    {user && (
+                        <Link to={user.role === 'consumer' ? '/dashboard' : '/provider-dashboard'} className="font-semibold text-purple-400">
+                            Dashboard
+                        </Link>
+                    )}
                 </div>
 
                 {/* Desktop Search Bar */}
@@ -144,6 +149,9 @@ const Navbar = () => {
                         <Link to="/gallery" onClick={handleMobileLinkClick} className="px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">Dataset Gallery</Link>
                         <Link to="/custom-request" onClick={handleMobileLinkClick} className="px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">Custom Request</Link>
                         <Link to="/news" onClick={handleMobileLinkClick} className="px-4 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">News</Link>
+                        {user && (
+                            <Link to={user.role === 'consumer' ? '/dashboard' : '/provider-dashboard'} onClick={handleMobileLinkClick} className="px-4 py-3 text-sm font-semibold text-purple-400 hover:bg-slate-800 rounded-lg transition-colors">Dashboard</Link>
+                        )}
                     </div>
 
                     {!user && (

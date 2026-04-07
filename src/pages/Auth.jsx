@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Database, Activity } from 'lucide-react';
+import { ShieldCheck, Database, Activity, CheckCircle2, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Login = () => {
@@ -125,6 +125,10 @@ export const Signup = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
+    const [isStudent, setIsStudent] = useState(false);
+    const [verificationMethod, setVerificationMethod] = useState('email');
+    const [isVerified, setIsVerified] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
     return (
         <div className="min-h-screen pt-20 flex flex-col lg:flex-row-reverse font-sans">
             {/* Right Side - Visuals (Hidden on small screens) */}
@@ -188,8 +192,33 @@ export const Signup = () => {
                         </button>
                     </div>
 
+                    {role === 'consumer' && (
+                        <div className="mb-6 flex items-start gap-3 bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
+                            <input 
+                                type="checkbox" 
+                                id="studentCheck" 
+                                checked={isStudent} 
+                                onChange={(e) => {
+                                    setIsStudent(e.target.checked);
+                                    if(e.target.checked) setRole('consumer'); // force consumer if student
+                                }}
+                                className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-800/50 text-purple-500 focus:ring-purple-500" 
+                            />
+                            <div>
+                                <label htmlFor="studentCheck" className="text-sm font-semibold text-slate-200 cursor-pointer block leading-none">
+                                    I am a Student / Research Scholar
+                                </label>
+                                <p className="text-xs text-slate-400 mt-1">Requires university email or active student ID verification.</p>
+                            </div>
+                        </div>
+                    )}
+
                     <form className="space-y-6" onSubmit={(e) => {
                         e.preventDefault();
+                        if (isStudent && !isVerified) {
+                            alert("Please complete the student verification to proceed.");
+                            return;
+                        }
                         login({ name: `${firstName} ${lastName}`.trim() || 'New User', role, email });
                         navigate(role === 'consumer' ? '/dashboard' : '/provider-dashboard');
                     }}>
@@ -216,18 +245,83 @@ export const Signup = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Work Email</label>
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-inner"
-                                placeholder="name@institution.edu"
-                            />
-                            <p className="text-[10px] text-slate-500 mt-1.5">Please use your institutional or company email domain.</p>
-                        </div>
+                        {isStudent ? (
+                            <div className="bg-slate-800/30 border border-purple-500/30 rounded-xl p-4 space-y-4">
+                                <h4 className="text-sm font-bold text-purple-400 flex items-center gap-2"><ShieldCheck size={16} /> University Verification Required</h4>
+                                
+                                <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700/50">
+                                    <button type="button" onClick={() => setVerificationMethod('email')} className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${verificationMethod === 'email' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-slate-400 hover:text-slate-300'}`}>.edu Email OTP</button>
+                                    <button type="button" onClick={() => setVerificationMethod('id')} className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${verificationMethod === 'id' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-slate-400 hover:text-slate-300'}`}>Upload ID Card</button>
+                                </div>
+
+                                {verificationMethod === 'email' ? (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">University Email (.edu)</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="email"
+                                                required={!isVerified}
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-primary outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-inner"
+                                                placeholder="scholar@university.edu"
+                                                disabled={isVerified}
+                                            />
+                                            {!isVerified && (
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => {
+                                                        if(!email) return alert("Please enter email first");
+                                                        setVerificationSent(true);
+                                                        setTimeout(() => { setIsVerified(true); alert("OTP 6289 verified successfully!"); }, 1000);
+                                                    }}
+                                                    className="btn bg-slate-700 hover:bg-slate-600 px-4 py-2 text-xs shrink-0 border border-slate-600"
+                                                >
+                                                    {verificationSent ? "Verifying..." : "Send OTP"}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {isVerified && <p className="text-xs text-green-400 mt-2 flex items-center gap-1"><CheckCircle2 size={12} /> Account Verified</p>}
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Upload Valid University ID</label>
+                                        <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center hover:border-purple-500/50 transition-colors cursor-pointer bg-slate-800/40"
+                                             onClick={() => {
+                                                 setVerificationSent(true);
+                                                 setTimeout(() => { setIsVerified(true); alert("ID Document uploaded & reviewed successfully."); }, 1200);
+                                             }}
+                                        >
+                                            {isVerified ? (
+                                                <div className="flex flex-col items-center gap-2 text-green-400">
+                                                    <CheckCircle2 size={24} />
+                                                    <span className="text-sm font-semibold">ID Validated</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                    <Upload size={24} className={verificationSent ? "animate-bounce text-purple-400" : ""} />
+                                                    <span className="text-sm">{verificationSent ? "Uploading..." : "Click to browse or drop file here"}</span>
+                                                    <span className="text-[10px]">JPG, PNG, PDF formats accepted</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Work Email</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-inner"
+                                    placeholder="name@institution.edu"
+                                />
+                                <p className="text-[10px] text-slate-500 mt-1.5">Please use your institutional or company email domain.</p>
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Password</label>

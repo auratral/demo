@@ -114,3 +114,37 @@ input {
         background-position: 200% center;
     }
 }
+
+/* Unicorn Studio WebGL Background Layer */
+.unicorn-bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -40;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0.30;
+}
+
+/* Hide UnicornStudio watermark / logomark — comprehensive selectors */
+/* Watermark is injected by the SDK at body/root level, not inside .unicorn-bg-layer */
+a[href*="unicorn.studio"],
+a[href*="unicornstudio"],
+[data-us-watermark],
+img[src*="unicorn.studio"],
+img[src*="made_in_us"],
+img[src*="free_user_logo"],
+div[style*="unicorn.studio"],
+.unicorn-bg-layer > div > a,
+.unicorn-bg-layer a {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    clip: rect(0, 0, 0, 0) !important;
+}
