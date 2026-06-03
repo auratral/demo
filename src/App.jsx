@@ -14,6 +14,7 @@ import UnicornScene from 'unicornstudio-react';
 import Navbar from './components/Layout/Navbar';
 import Footer from './components/Layout/Footer';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Page Imports
 import Home from './pages/Home';
@@ -137,8 +138,16 @@ function App() {
                             {/* Authentication & Dashboard */}
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<Signup />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+                            <Route path="/dashboard" element={
+                                <ProtectedRoute allowedRoles={['consumer']}>
+                                    <Dashboard />
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/provider-dashboard" element={
+                                <ProtectedRoute allowedRoles={['provider']}>
+                                    <ProviderDashboard />
+                                </ProtectedRoute>
+                            } />
 
                             {/* 404 Catch-all */}
                             <Route path="*" element={

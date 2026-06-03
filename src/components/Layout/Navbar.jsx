@@ -20,9 +20,46 @@ const Navbar = () => {
     }, []);
 
     const handlePictureChange = () => {
-        const newUrl = prompt("Enter new avatar image URL (e.g. https://github.com/identicons/user.png):");
-        if (newUrl) {
-            updateProfilePicture(newUrl);
+        document.getElementById('avatar-upload-input')?.click();
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Please select an image smaller than 2MB.');
+            return;
+        }
+
+        try {
+            const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+            const { storage } = await import('../../firebase');
+            
+            const storageRef = ref(storage, `avatars/${user.uid}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            
+            await updateProfilePicture(downloadUrl);
+            alert('Profile picture uploaded successfully to Firebase Storage!');
+        } catch (err) {
+            console.warn("Firebase Storage upload failed, falling back to local base64 storage:", err);
+            
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64Url = event.target?.result;
+                if (base64Url) {
+                    await updateProfilePicture(base64Url);
+                    localStorage.setItem(`avatar_${user.uid}`, base64Url);
+                    alert('Profile picture updated locally! (Firebase Storage was uninitialized)');
+                }
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -166,6 +203,17 @@ const Navbar = () => {
                         <span className="text-xs font-semibold text-blue-300">HIPAA / GDPR / DPDP Ready</span>
                     </div>
                 </div>
+            )}
+            
+            {/* Hidden upload input */}
+            {user && (
+                <input 
+                    type="file" 
+                    id="avatar-upload-input" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={handleFileChange} 
+                />
             )}
         </nav>
     );

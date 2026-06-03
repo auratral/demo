@@ -1,4 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    GithubAuthProvider,
+    updateProfile
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -6,43 +18,194 @@ export const useAuth = () => {
     return useContext(AuthContext);
 };
 
+const fetchDocWithTimeout = (docRef, ms = 1500) => {
+    return Promise.race([
+        getDoc(docRef),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), ms))
+    ]);
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for stored user on mount
-        const storedUser = localStorage.getItem('auratral_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                const defaultName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+                const localAvatar = localStorage.getItem(`avatar_${firebaseUser.uid}`);
+                const fallbackProfile = {
+                    name: defaultName,
+                    email: firebaseUser.email || '',
+                    role: 'consumer',
+                    avatarUrl: localAvatar || firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=random`,
+                    createdAt: new Date().toISOString()
+                };
+
+                try {
+                    const docRef = doc(db, 'users', firebaseUser.uid);
+                    // Timeout firestore fetch to 1.5 seconds maximum
+                    const docSnap = await fetchDocWithTimeout(docRef, 1500);
+                    
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setUser({ 
+                            uid: firebaseUser.uid, 
+                            ...data, 
+                            avatarUrl: localAvatar || data.avatarUrl || fallbackProfile.avatarUrl 
+                        });
+                    } else {
+                        // Background write, non-blocking
+                        setDoc(docRef, fallbackProfile).catch((writeErr) => {
+                            console.warn("Could not write new profile to Firestore:", writeErr);
+                        });
+                        setUser({ uid: firebaseUser.uid, ...fallbackProfile });
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile from Firestore, using Auth details as fallback:", error);
+                    setUser({ uid: firebaseUser.uid, ...fallbackProfile });
+                }
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        });
+
+        return unsubscribe;
     }, []);
 
-    const login = (userData) => {
-        // Add a default avatar if none provided
-        const userToStore = {
-            ...userData,
-            avatarUrl: userData.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`
+    const loginWithEmail = (email, password) => {
+        return signInWithEmailAndPassword(auth, email, password);
+    };
+
+    const signupWithEmail = async (email, password, name, role) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        
+        try {
+            await updateProfile(firebaseUser, { displayName: name });
+        } catch (profileErr) {
+            console.warn("Could not update auth profile display name:", profileErr);
+        }
+
+        const profile = {
+            name,
+            email,
+            role,
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+            createdAt: new Date().toISOString()
         };
-        setUser(userToStore);
-        localStorage.setItem('auratral_user', JSON.stringify(userToStore));
+        
+        // Background write, non-blocking to prevent UI hang
+        setDoc(doc(db, 'users', firebaseUser.uid), profile).catch((dbErr) => {
+            console.warn("Could not write signup profile to Firestore:", dbErr);
+        });
+        
+        setUser({ uid: firebaseUser.uid, ...profile });
+        return userCredential;
+    };
+
+    const loginWithGoogle = async (role = 'consumer') => {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        const firebaseUser = userCredential.user;
+        
+        const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+        const profile = {
+            name: displayName,
+            email: firebaseUser.email || '',
+            role,
+            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            const docRef = doc(db, 'users', firebaseUser.uid);
+            const docSnap = await fetchDocWithTimeout(docRef, 1500);
+            
+            if (!docSnap.exists()) {
+                // Background write, non-blocking
+                setDoc(docRef, profile).catch((writeErr) => {
+                    console.warn("Google signup document write failed:", writeErr);
+                });
+                setUser({ uid: firebaseUser.uid, ...profile });
+            } else {
+                setUser({ uid: firebaseUser.uid, ...docSnap.data() });
+            }
+        } catch (dbErr) {
+            console.error("Firestore error in Google Sign-In, using Auth metadata fallback:", dbErr);
+            setUser({ uid: firebaseUser.uid, ...profile });
+        }
+        return userCredential;
+    };
+
+    const loginWithGithub = async (role = 'consumer') => {
+        const provider = new GithubAuthProvider();
+        const userCredential = await signInWithPopup(auth, provider);
+        const firebaseUser = userCredential.user;
+        
+        const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+        const profile = {
+            name: displayName,
+            email: firebaseUser.email || '',
+            role,
+            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
+            createdAt: new Date().toISOString()
+        };
+        
+        try {
+            const docRef = doc(db, 'users', firebaseUser.uid);
+            const docSnap = await fetchDocWithTimeout(docRef, 1500);
+            
+            if (!docSnap.exists()) {
+                // Background write, non-blocking
+                setDoc(docRef, profile).catch((writeErr) => {
+                    console.warn("GitHub signup document write failed:", writeErr);
+                });
+                setUser({ uid: firebaseUser.uid, ...profile });
+            } else {
+                setUser({ uid: firebaseUser.uid, ...docSnap.data() });
+            }
+        } catch (dbErr) {
+            console.error("Firestore error in GitHub Sign-In, using Auth metadata fallback:", dbErr);
+            setUser({ uid: firebaseUser.uid, ...profile });
+        }
+        return userCredential;
     };
 
     const logout = () => {
-        setUser(null);
-        localStorage.removeItem('auratral_user');
+        return signOut(auth);
     };
 
-    const updateProfilePicture = (newUrl) => {
+    const updateProfilePicture = async (newUrl) => {
         if (user) {
-            const updatedUser = { ...user, avatarUrl: newUrl };
-            setUser(updatedUser);
-            localStorage.setItem('auratral_user', JSON.stringify(updatedUser));
+            try {
+                const docRef = doc(db, 'users', user.uid);
+                // Background write, non-blocking
+                updateDoc(docRef, { avatarUrl: newUrl }).catch((dbErr) => {
+                    console.warn("Could not update profile picture in Firestore:", dbErr);
+                });
+            } catch (dbErr) {
+                console.warn("Could not reference profile document in Firestore:", dbErr);
+            }
+
+            try {
+                await updateProfile(auth.currentUser, { photoURL: newUrl });
+            } catch (authErr) {
+                console.warn("Could not update auth profile photo URL:", authErr);
+            }
+
+            setUser(prev => ({ ...prev, avatarUrl: newUrl }));
         }
     };
 
     const value = {
         user,
-        login,
+        loading,
+        loginWithEmail,
+        signupWithEmail,
+        loginWithGoogle,
+        loginWithGithub,
         logout,
         updateProfilePicture
     };
@@ -53,3 +216,4 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+

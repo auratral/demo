@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Database, Key, CreditCard, Activity, ArrowRight, Download, Settings, FileText, File, X, Plus, Check, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const { user: authUser } = useAuth();
     const [activeTab, setActiveTab] = useState('overview');
     const [manageModalOpen, setManageModalOpen] = useState(false);
     const [managingDataset, setManagingDataset] = useState(null);
@@ -36,11 +38,11 @@ const Dashboard = () => {
         return { label: 'Re-deliver Access', desc: 'data re-provisioning' };
     };
 
-    // Mock user data
+    // User data derived from AuthContext or fallback
     const user = {
-        name: 'Jane Doe',
-        institution: 'Global Health Institute',
-        plan: 'Academic Research',
+        name: authUser?.name || 'Jane Doe',
+        institution: authUser?.institution || 'Global Health Institute',
+        plan: authUser?.role === 'provider' ? 'Data Provider' : 'Academic Research',
         credits: 12500
     };
 
