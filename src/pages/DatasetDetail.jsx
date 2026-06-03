@@ -747,8 +747,8 @@ const DatasetDetail = () => {
         format: datasetData.formats[0]
     };
 
-    const MOCK_COLUMNS = datasetData.columns;
-    const SAMPLE_ROWS = datasetData.rows;
+    const MOCK_COLUMNS = datasetData.columns || [];
+    const SAMPLE_ROWS = datasetData.rows || datasetData.recordsData || [];
 
     const [activeTab, setActiveTab] = useState('overview');
 
