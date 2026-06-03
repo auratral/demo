@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info } from 'lucide-react';
+import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info, FileText, ClipboardList, Clock } from 'lucide-react';
 
 export const Customize = () => {
     const navigate = useNavigate();
@@ -325,13 +325,223 @@ export const Agreement = () => {
                 <div className="flex justify-end gap-4 border-t border-glass-border pt-6">
                     <button onClick={() => navigate(-1)} className="btn btn-outline py-3 px-6">Go Back</button>
                     <button
-                        onClick={() => navigate('/checkout', { state: orderState })}
+                        onClick={() => navigate('/irb-review', { state: orderState })}
                         className={`btn py-3 px-8 transition-all ${allAgreed ? 'btn-primary bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
                         disabled={!allAgreed}
                     >
                         Sign & Proceed to Payment
                     </button>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+export const IrbReview = () => {
+    const navigate = useNavigate();
+    const { state: orderState } = useLocation();
+    const [irb, setIrb] = useState({
+        piName: '',
+        piEmail: '',
+        institution: '',
+        researchScope: '',
+        studyTitle: '',
+        studyType: '',
+        dataUsagePurpose: '',
+        expectedDuration: '',
+        estimatedSampleSize: '',
+        fundingSource: '',
+        additionalNotes: '',
+        confirmAccuracy: false,
+        confirmEthics: false,
+    });
+
+    const update = (field, value) => setIrb(prev => ({ ...prev, [field]: value }));
+
+    const requiredFilled = irb.piName && irb.piEmail && irb.institution && irb.researchScope && irb.studyTitle && irb.studyType && irb.dataUsagePurpose && irb.confirmAccuracy && irb.confirmEthics;
+
+    return (
+        <div className="pt-32 pb-16 min-h-screen">
+            <div className="container mx-auto px-8 max-w-4xl">
+
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-6 border-b border-glass-border pb-4">
+                    <ClipboardList size={32} className="text-emerald-400" />
+                    <div>
+                        <h1 className="text-3xl font-bold text-primary">IRB / IEC Ethics Review</h1>
+                        <p className="text-secondary text-sm mt-1">Institutional Review Board / Independent Ethics Committee Submission</p>
+                    </div>
+                </div>
+
+                {/* Info Banner */}
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
+                    <FileText className="text-emerald-400 shrink-0 mt-0.5" size={24} />
+                    <div>
+                        <h4 className="font-bold text-emerald-400">Ethics Review Submission</h4>
+                        <p className="text-sm text-emerald-200/70 mt-1 leading-relaxed">Please provide your research details below for IRB/IEC review. Our ethics committee will evaluate your submission to ensure compliance with ethical research standards and institutional requirements before granting data access.</p>
+                    </div>
+                </div>
+
+                {/* Principal Investigator Details */}
+                <div className="glass-panel p-6 mb-6">
+                    <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                        <div className="w-2 h-5 bg-emerald-500 rounded-sm"></div>
+                        Principal Investigator Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Full Name <span className="text-red-400">*</span></label>
+                            <input type="text" value={irb.piName} onChange={e => update('piName', e.target.value)} placeholder="Dr. John Smith" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Email Address <span className="text-red-400">*</span></label>
+                            <input type="email" value={irb.piEmail} onChange={e => update('piEmail', e.target.value)} placeholder="pi@institution.edu" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Institution / Organization <span className="text-red-400">*</span></label>
+                            <input type="text" value={irb.institution} onChange={e => update('institution', e.target.value)} placeholder="e.g. Stanford University School of Medicine" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Research Scope & Study Details */}
+                <div className="glass-panel p-6 mb-6">
+                    <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                        <div className="w-2 h-5 bg-purple-500 rounded-sm"></div>
+                        Scope of Research
+                    </h3>
+                    <div className="space-y-5">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Study Title <span className="text-red-400">*</span></label>
+                            <input type="text" value={irb.studyTitle} onChange={e => update('studyTitle', e.target.value)} placeholder="e.g. Cardiovascular Risk Prediction Using Machine Learning on Indian Population Data" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Study Type <span className="text-red-400">*</span></label>
+                                <select value={irb.studyType} onChange={e => update('studyType', e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors">
+                                    <option value="">Select study type...</option>
+                                    <option>Observational Study</option>
+                                    <option>Retrospective Analysis</option>
+                                    <option>Prospective Study</option>
+                                    <option>Clinical Trial (Phase I-IV)</option>
+                                    <option>Epidemiological Study</option>
+                                    <option>Health Services Research</option>
+                                    <option>Machine Learning / AI Research</option>
+                                    <option>Public Health Research</option>
+                                    <option>Quality Improvement Study</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Purpose of Data Usage <span className="text-red-400">*</span></label>
+                                <select value={irb.dataUsagePurpose} onChange={e => update('dataUsagePurpose', e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors">
+                                    <option value="">Select purpose...</option>
+                                    <option>Academic Research</option>
+                                    <option>Commercial R&D</option>
+                                    <option>Drug Discovery & Development</option>
+                                    <option>Diagnostic Tool Development</option>
+                                    <option>Health Policy Analysis</option>
+                                    <option>Population Health Study</option>
+                                    <option>Training AI/ML Models</option>
+                                    <option>Clinical Decision Support</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Detailed Scope of Research <span className="text-red-400">*</span></label>
+                            <textarea value={irb.researchScope} onChange={e => update('researchScope', e.target.value)} rows={4} placeholder="Describe the objectives, methodology, and expected outcomes of your research. Include specific hypotheses, data analysis approaches, and how this dataset will be utilized in your study..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors resize-none" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Expected Duration</label>
+                                <select value={irb.expectedDuration} onChange={e => update('expectedDuration', e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors">
+                                    <option value="">Select duration...</option>
+                                    <option>Less than 6 months</option>
+                                    <option>6 months - 1 year</option>
+                                    <option>1 - 2 years</option>
+                                    <option>2 - 3 years</option>
+                                    <option>3+ years</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Estimated Sample Size</label>
+                                <input type="text" value={irb.estimatedSampleSize} onChange={e => update('estimatedSampleSize', e.target.value)} placeholder="e.g. 10,000 records" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Funding Source</label>
+                                <input type="text" value={irb.fundingSource} onChange={e => update('fundingSource', e.target.value)} placeholder="e.g. NIH Grant, Internal" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Additional Notes / Comments</label>
+                            <textarea value={irb.additionalNotes} onChange={e => update('additionalNotes', e.target.value)} rows={3} placeholder="Any additional information, special requirements, or comments for the ethics review..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors resize-none" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Confirmations */}
+                <div className="glass-panel p-6 mb-8">
+                    <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                        <div className="w-2 h-5 bg-amber-500 rounded-sm"></div>
+                        Declarations
+                    </h3>
+                    <div className="space-y-4">
+                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-emerald-500/50 transition-colors">
+                            <div className="mt-0.5 relative flex items-center justify-center shrink-0">
+                                <input
+                                    type="checkbox"
+                                    checked={irb.confirmAccuracy}
+                                    onChange={() => update('confirmAccuracy', !irb.confirmAccuracy)}
+                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-emerald-500 checked:border-emerald-500 transition-all cursor-pointer"
+                                />
+                                {irb.confirmAccuracy && <svg className="w-3.5 h-3.5 text-white absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                            </div>
+                            <div>
+                                <span className="text-primary font-medium">Accuracy Confirmation <span className="text-red-400">*</span></span>
+                                <p className="text-xs text-slate-400 mt-1">I confirm that all information provided above is accurate and complete. I understand that providing false or misleading information may result in termination of data access and potential legal consequences.</p>
+                            </div>
+                        </label>
+                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-emerald-500/50 transition-colors">
+                            <div className="mt-0.5 relative flex items-center justify-center shrink-0">
+                                <input
+                                    type="checkbox"
+                                    checked={irb.confirmEthics}
+                                    onChange={() => update('confirmEthics', !irb.confirmEthics)}
+                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-emerald-500 checked:border-emerald-500 transition-all cursor-pointer"
+                                />
+                                {irb.confirmEthics && <svg className="w-3.5 h-3.5 text-white absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                            </div>
+                            <div>
+                                <span className="text-primary font-medium">Ethics Compliance <span className="text-red-400">*</span></span>
+                                <p className="text-xs text-slate-400 mt-1">I confirm that this research has been reviewed and approved by an authorized IRB/IEC and that I will conduct this study in accordance with the Declaration of Helsinki, ICH-GCP guidelines, and all applicable local regulations.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                {/* Processing Time Notice */}
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
+                    <Clock className="text-amber-400 shrink-0 mt-0.5" size={24} />
+                    <div>
+                        <h4 className="font-bold text-amber-400">Review Processing Time</h4>
+                        <p className="text-sm text-amber-200/70 mt-1 leading-relaxed">Once submitted, your application will be reviewed by our IRB/IEC ethics committee. You can typically expect an approval or rejection decision within <strong className="text-amber-300">24 hours</strong>. You will be notified via email at the address provided above once a decision has been made.</p>
+                    </div>
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-end gap-4 border-t border-glass-border pt-6">
+                    <button onClick={() => navigate(-1)} className="btn btn-outline py-3 px-6">Go Back</button>
+                    <button
+                        onClick={() => navigate('/checkout', { state: orderState })}
+                        className={`btn py-3 px-8 transition-all flex items-center gap-2 ${requiredFilled ? 'btn-primary bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
+                        disabled={!requiredFilled}
+                    >
+                        <ShieldCheck size={16} />
+                        Submit & Proceed to Payment
+                    </button>
+                </div>
+
             </div>
         </div>
     );

@@ -23,7 +23,7 @@ import DatasetDetail from './pages/DatasetDetail';
 import CustomRequest from './pages/CustomRequest';
 import News from './pages/News';
 import NewsArticle from './pages/NewsArticle';
-import { Customize, Agreement, Checkout } from './pages/CheckoutFlow';
+import { Customize, Agreement, IrbReview, Checkout } from './pages/CheckoutFlow';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
@@ -128,6 +128,7 @@ function App() {
                             {/* Checkout Flow */}
                             <Route path="/customize" element={<Customize />} />
                             <Route path="/agreement" element={<Agreement />} />
+                            <Route path="/irb-review" element={<IrbReview />} />
                             <Route path="/checkout" element={<Checkout />} />
 
                             {/* Informational Pages */}
