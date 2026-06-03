@@ -38505,10 +38505,12 @@ export const allDatasets = Object.values(DATASET_REGISTRY).map(ds => ({
     id: ds.id,
     name: ds.name,
     category: ds.category,
+    subCategory: ds.subCategory,
     records: ds.records,
     formats: ds.formats,
     compliance: ds.compliance,
     rating: ds.rating,
+    reviews: ds.reviews,
     price: ds.price,
     delivery: ['download'],
     description: ds.description

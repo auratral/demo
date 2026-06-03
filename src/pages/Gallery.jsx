@@ -1,103 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { allDatasets as fallbackDatasets } from '../data/datasetsRegistry';
 
 const categories = ['All', 'EHR', 'Imaging', 'Pharma', 'Genomics', 'Mental Health', 'Trials'];
 
 const Gallery = () => {
-    const [datasets, setDatasets] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
-        let active = true;
-        const fetchDatasets = async () => {
-            const timeoutId = setTimeout(() => {
-                if (active && loading) {
-                    console.warn("Firestore fetch timed out after 3.5s. Falling back to local dataset registry.");
-                    setDatasets(fallbackDatasets);
-                    setLoading(false);
-                }
-            }, 3500);
-
-            try {
-                const querySnapshot = await getDocs(collection(db, 'datasets'));
-                if (!active) return;
-                clearTimeout(timeoutId);
-                
-                if (!querySnapshot.empty) {
-                    const fetched = [];
-                    querySnapshot.forEach(docSnap => {
-                        const data = docSnap.data();
-                        fetched.push({
-                            id: data.id || docSnap.id,
-                            name: data.name || 'Untitled Dataset',
-                            category: data.category || 'EHR',
-                            subCategory: data.subCategory || 'Clinical cohort',
-                            records: data.records || '50',
-                            formats: data.formats || ['CSV'],
-                            compliance: data.compliance || ['De-identified'],
-                            rating: data.rating || 4.8,
-                            reviews: data.reviews || 0,
-                            price: data.price || 15000,
-                            delivery: data.delivery || ['download'],
-                            description: data.description || 'No description available.'
-                        });
-                    });
-                    
-                    fetched.sort((a, b) => {
-                        const catA = a.category || '';
-                        const catB = b.category || '';
-                        if (catA !== catB) {
-                            return catA.localeCompare(catB);
-                        }
-                        const idA = a.id || '';
-                        const idB = b.id || '';
-                        return idA.localeCompare(idB);
-                    });
-                    
-                    setDatasets(fetched);
-                } else {
-                    setDatasets(fallbackDatasets);
-                }
-            } catch (err) {
-                console.error("Error fetching datasets from Firestore: ", err);
-                if (active) {
-                    clearTimeout(timeoutId);
-                    setDatasets(fallbackDatasets);
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        };
-        fetchDatasets();
-        return () => {
-            active = false;
-        };
-    }, []);
+    // Load instantly from local registry — no Firestore delay
+    const datasets = fallbackDatasets;
 
     const filteredDatasets = datasets.filter(ds =>
         (activeCategory === 'All' || ds.category === activeCategory) &&
         (ds.name.toLowerCase().includes(searchQuery.toLowerCase()) || ds.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-    if (loading) {
-        return (
-            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
-                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
-                <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
-                <div className="text-center relative z-10">
-                    <div className="inline-flex w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-4"></div>
-                    <p className="text-slate-400 text-sm tracking-wide">Syncing Clinical Cohort Network...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="pt-24 pb-24 min-h-screen font-sans relative overflow-hidden">
