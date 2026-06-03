@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info, FileText, ClipboardList, Clock, Activity } from 'lucide-react';
-import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { DATASET_REGISTRY as fallbackRegistry } from '../data/datasetsRegistry';
@@ -11,8 +11,10 @@ export const Customize = () => {
     const location = useLocation();
     const datasetId = location.state?.datasetId || 'AUR-EHR-101';
 
-    const [dataset, setDataset] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // Instant local lookup — no Firestore delay
+    const dataset = fallbackRegistry[datasetId]
+        || Object.values(fallbackRegistry).find(d => d.id?.toLowerCase() === datasetId?.toLowerCase())
+        || fallbackRegistry[Object.keys(fallbackRegistry)[0]];
 
     // State for all form selections
     const [format, setFormat] = useState('');
@@ -27,26 +29,6 @@ export const Customize = () => {
     const [apiAccess, setApiAccess] = useState(false);
     const [dataUpdates, setDataUpdates] = useState(false);
 
-    useEffect(() => {
-        const fetchDataset = async () => {
-            try {
-                const docRef = doc(db, 'datasets', datasetId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setDataset(docSnap.data());
-                } else {
-                    setDataset(fallbackRegistry[datasetId] || fallbackRegistry['AUR-EHR-101']);
-                }
-            } catch (err) {
-                console.error("Error fetching dataset in Customize step: ", err);
-                setDataset(fallbackRegistry[datasetId] || fallbackRegistry['AUR-EHR-101']);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchDataset();
-    }, [datasetId]);
-
     // Set default format once dataset loads
     useEffect(() => {
         if (dataset && dataset.formats && dataset.formats.length > 0) {
@@ -54,18 +36,6 @@ export const Customize = () => {
         }
     }, [dataset]);
 
-    if (loading) {
-        return (
-            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
-                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
-                <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
-                <div className="text-center relative z-10">
-                    <div className="inline-flex w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-4"></div>
-                    <p className="text-slate-400 text-sm tracking-wide">Initiating customizer sandbox...</p>
-                </div>
-            </div>
-        );
-    }
 
     // Pricing calculation
     const basePrice = dataset?.price || 16500;
@@ -644,6 +614,205 @@ export const Checkout = () => {
             };
 
             await addDoc(collection(db, 'purchases'), purchaseData);
+
+            // Trigger actual dataset download since payment checkout is dummy
+            try {
+                const datasetId = order?.datasetId || 'AUR-EHR-101';
+                const localData = fallbackRegistry[datasetId]
+                    || Object.values(fallbackRegistry).find(d => d.id?.toLowerCase() === datasetId?.toLowerCase())
+                    || fallbackRegistry[Object.keys(fallbackRegistry)[0]];
+
+                if (localData) {
+                    let records = localData.recordsData || [];
+                    const columns = localData.columns || [];
+                    const recordsCount = order?.records || 50;
+
+                    if (typeof recordsCount === 'number') {
+                        records = records.slice(0, recordsCount);
+                    }
+
+                    if (records.length > 0) {
+                        let fileContent = '';
+                        let mimeType = 'text/plain';
+                        let fileExtension = 'txt';
+                        const datasetName = order?.datasetName || localData.name || 'Dataset';
+
+                        const cleanVal = (v) => {
+                            if (v === null || v === undefined) return '';
+                            return String(v).replace(/"/g, '""');
+                        };
+
+                        const selectedFmt = (order?.format || 'CSV').toUpperCase();
+
+                        if (selectedFmt === 'CSV') {
+                            const headers = columns.map(c => c.name);
+                            const csvRows = [headers.join(',')];
+                            
+                            records.forEach(row => {
+                                const values = headers.map(header => {
+                                    const val = row[header];
+                                    return `"${cleanVal(val)}"`;
+                                });
+                                csvRows.push(values.join(','));
+                            });
+                            
+                            fileContent = csvRows.join('\n');
+                            mimeType = 'text/csv;charset=utf-8;';
+                            fileExtension = 'csv';
+                        } 
+                        else if (selectedFmt === 'JSON') {
+                            fileContent = JSON.stringify(records, null, 2);
+                            mimeType = 'application/json;charset=utf-8;';
+                            fileExtension = 'json';
+                        } 
+                        else if (selectedFmt === 'SQL') {
+                            const tableName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                            const headers = columns.map(c => c.name);
+                            const sqlStatements = [
+                                `-- Auratral Dynamic SQL Export`,
+                                `-- Dataset: ${datasetName}`,
+                                `-- Generated on ${new Date().toISOString()}`,
+                                `CREATE TABLE ${tableName} (`,
+                                columns.map(c => `  ${c.name} ${c.dtype === 'Int32' ? 'INTEGER' : c.dtype === 'Float32' ? 'NUMERIC' : c.dtype === 'Boolean' ? 'BOOLEAN' : 'VARCHAR(255)'}`).join(',\n'),
+                                `);\n`
+                            ];
+
+                            records.forEach(row => {
+                                const values = headers.map(header => {
+                                    const val = row[header];
+                                    if (val === null || val === undefined) return 'NULL';
+                                    if (typeof val === 'boolean' || val === 'true' || val === 'false') return String(val).toLowerCase();
+                                    if (typeof val === 'number') return val;
+                                    return `'${cleanVal(val)}'`;
+                                });
+                                sqlStatements.push(`INSERT INTO ${tableName} (${headers.join(', ')}) VALUES (${values.join(', ')});`);
+                            });
+
+                            fileContent = sqlStatements.join('\n');
+                            mimeType = 'application/sql;charset=utf-8;';
+                            fileExtension = 'sql';
+                        } 
+                        else if (selectedFmt === 'FHIR R4') {
+                            const fhirBundle = {
+                                resourceType: "Bundle",
+                                type: "transaction",
+                                entry: []
+                            };
+
+                            records.forEach((row, rIdx) => {
+                                const pId = row.patient_id || row.subject_id || row.maternal_id || row.respondent_id || `patient-${rIdx}`;
+                                const patientResource = {
+                                    resource: {
+                                        resourceType: "Patient",
+                                        id: pId,
+                                        gender: row.gender ? row.gender.toLowerCase() : "unknown",
+                                        birthDate: row.age ? new Date(new Date().getFullYear() - row.age, 0, 1).toISOString().split('T')[0] : undefined
+                                    },
+                                    request: {
+                                        method: "POST",
+                                        url: "Patient"
+                                    }
+                                };
+                                fhirBundle.entry.push(patientResource);
+
+                                Object.keys(row).forEach(key => {
+                                    if (!['patient_id', 'subject_id', 'maternal_id', 'respondent_id', 'gender', 'age'].includes(key) && row[key] !== null) {
+                                        const observationResource = {
+                                            resource: {
+                                                resourceType: "Observation",
+                                                status: "final",
+                                                code: {
+                                                    coding: [{
+                                                        system: "http://loinc.org",
+                                                        code: `aur-${key}`,
+                                                        display: key.replace(/_/g, ' ')
+                                                    }]
+                                                },
+                                                subject: {
+                                                    reference: `Patient/${pId}`
+                                                },
+                                                valueString: typeof row[key] === 'string' ? row[key] : undefined,
+                                                valueQuantity: typeof row[key] === 'number' ? {
+                                                    value: row[key],
+                                                    unit: columns.find(c => c.name === key)?.units || ''
+                                                } : undefined,
+                                                valueBoolean: typeof row[key] === 'boolean' ? row[key] : undefined
+                                            },
+                                            request: {
+                                                method: "POST",
+                                                url: "Observation"
+                                            }
+                                        };
+                                        fhirBundle.entry.push(observationResource);
+                                    }
+                                });
+                            });
+
+                            fileContent = JSON.stringify(fhirBundle, null, 2);
+                            mimeType = 'application/fhir+json;charset=utf-8;';
+                            fileExtension = 'fhir.json';
+                        } 
+                        else if (selectedFmt === 'VCF') {
+                            const vcfLines = [
+                                '##fileformat=VCFv4.2',
+                                `##fileDate=${new Date().toISOString().split('T')[0]}`,
+                                '##source=AuratralGenomicsExporter',
+                                '##reference=GRCh38',
+                                '##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">',
+                                '##INFO=<ID=SIG,Number=1,Type=String,Description="Clinical Significance">',
+                                '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO'
+                            ];
+
+                            records.forEach(row => {
+                                const chrom = row.chromosome || '1';
+                                const pos = row.position || '100000';
+                                const variantId = row.variant_id || 'rs0000';
+                                const ref = row.ref_allele || 'N';
+                                const alt = row.alt_allele || 'N';
+                                const af = row.allele_frequency !== undefined ? row.allele_frequency : '0.0';
+                                const sig = row.clinical_significance || 'Unknown';
+                                vcfLines.push(`${chrom}\t${pos}\t${variantId}\t${ref}\t${alt}\t100\tPASS\tAF=${af};SIG=${sig}`);
+                            });
+
+                            fileContent = vcfLines.join('\n');
+                            mimeType = 'text/vcard;charset=utf-8;';
+                            fileExtension = 'vcf';
+                        }
+                        else {
+                            // default format
+                            const headers = columns.map(c => c.name);
+                            if (headers.length > 0) {
+                                const csvRows = [headers.join(',')];
+                                records.forEach(row => {
+                                    csvRows.push(headers.map(h => `"${cleanVal(row[h])}"`).join(','));
+                                });
+                                fileContent = csvRows.join('\n');
+                                mimeType = 'text/csv;charset=utf-8;';
+                                fileExtension = selectedFmt.toLowerCase();
+                            } else {
+                                fileContent = JSON.stringify(records, null, 2);
+                                mimeType = 'application/json;charset=utf-8;';
+                                fileExtension = selectedFmt.toLowerCase();
+                            }
+                        }
+
+                        if (fileContent) {
+                            const blob = new Blob([fileContent], { type: mimeType });
+                            const link = document.createElement("a");
+                            const url = URL.createObjectURL(blob);
+                            link.setAttribute("href", url);
+                            const safeName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                            link.setAttribute("download", `${safeName}_${recordsCount}_records.${fileExtension}`);
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
+                    }
+                }
+            } catch (downloadErr) {
+                console.error("Error during auto-download: ", downloadErr);
+            }
+
             alert("Payment processed successfully! Your dataset has been provisioned. Redirecting to Dashboard.");
             navigate('/dashboard');
         } catch (err) {
