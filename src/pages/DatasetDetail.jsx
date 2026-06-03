@@ -737,14 +737,14 @@ const DatasetDetail = () => {
     };
 
     const defaultCohort = datasetData.defaultCohort ? datasetData.defaultCohort : {
-        records: datasetData.records,
+        records: dataset.records,
         gender: 'Balanced — 50% Male / 50% Female',
         ageRange: '18 – 85 years',
         region: 'Pan-India Cohort',
         timePeriod: dataset.temporalCoverage,
-        conditions: `All ${datasetData.subCategory} patient admission types`,
+        conditions: `All ${dataset.subCategory || 'relevant'} patient admission types`,
         exclusions: 'PII, incomplete records',
-        format: datasetData.formats[0]
+        format: dataset.formats && dataset.formats.length > 0 ? dataset.formats[0] : 'CSV'
     };
 
     const MOCK_COLUMNS = datasetData.columns || [];
@@ -778,7 +778,7 @@ const DatasetDetail = () => {
                             <div className="flex gap-2 mb-4">
                                 <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-blue-400 border border-slate-700">{dataset.category}</span>
                                 <span className="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">{dataset.subCategory}</span>
-                                <span className="text-xs px-2 py-1 rounded bg-slate-900 text-slate-500 border border-slate-700 font-mono">{dataKey}</span>
+                                <span className="text-xs px-2 py-1 rounded bg-slate-900 text-slate-500 border border-slate-700 font-mono">{id}</span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4 leading-tight">{dataset.name}</h1>
                             <div className="flex items-center gap-4 text-sm text-slate-300 mb-6">
