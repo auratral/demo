@@ -657,10 +657,23 @@ const DatasetDetail = () => {
     };
 
     useEffect(() => {
+        let active = true;
         const fetchDataset = async () => {
+            const timeoutId = setTimeout(() => {
+                if (active && loading) {
+                    console.warn("Firestore fetch timed out after 3.5s. Falling back to local dataset detail registry.");
+                    const localData = DATASET_REGISTRY[id] || Object.values(DATASET_REGISTRY)[0];
+                    setDatasetData(localData);
+                    setLoading(false);
+                }
+            }, 3500);
+
             try {
                 const docRef = doc(db, 'datasets', id);
                 const docSnap = await getDoc(docRef);
+                if (!active) return;
+                clearTimeout(timeoutId);
+
                 if (docSnap.exists()) {
                     setDatasetData(docSnap.data());
                 } else if (DATASET_REGISTRY[id]) {
@@ -672,16 +685,24 @@ const DatasetDetail = () => {
                 }
             } catch (err) {
                 console.error("Error fetching dataset from Firestore: ", err);
-                if (DATASET_REGISTRY[id]) {
-                    setDatasetData(DATASET_REGISTRY[id]);
-                } else {
-                    setDatasetData(DATASET_REGISTRY[FALLBACK_ID]);
+                if (active) {
+                    clearTimeout(timeoutId);
+                    if (DATASET_REGISTRY[id]) {
+                        setDatasetData(DATASET_REGISTRY[id]);
+                    } else {
+                        setDatasetData(DATASET_REGISTRY[FALLBACK_ID]);
+                    }
                 }
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
         fetchDataset();
+        return () => {
+            active = false;
+        };
     }, [id]);
 
     const handleProtectedAction = (e, path) => {

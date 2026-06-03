@@ -14,46 +14,72 @@ const Gallery = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
+        let active = true;
         const fetchDatasets = async () => {
+            const timeoutId = setTimeout(() => {
+                if (active && loading) {
+                    console.warn("Firestore fetch timed out after 3.5s. Falling back to local dataset registry.");
+                    setDatasets(fallbackDatasets);
+                    setLoading(false);
+                }
+            }, 3500);
+
             try {
                 const querySnapshot = await getDocs(collection(db, 'datasets'));
+                if (!active) return;
+                clearTimeout(timeoutId);
+                
                 if (!querySnapshot.empty) {
                     const fetched = [];
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
+                    querySnapshot.forEach(docSnap => {
+                        const data = docSnap.data();
                         fetched.push({
-                            id: data.id,
-                            name: data.name,
-                            category: data.category,
-                            records: data.records,
-                            formats: data.formats,
-                            compliance: data.compliance,
-                            rating: data.rating,
-                            price: data.price,
+                            id: data.id || docSnap.id,
+                            name: data.name || 'Untitled Dataset',
+                            category: data.category || 'EHR',
+                            subCategory: data.subCategory || 'Clinical cohort',
+                            records: data.records || '50',
+                            formats: data.formats || ['CSV'],
+                            compliance: data.compliance || ['De-identified'],
+                            rating: data.rating || 4.8,
+                            reviews: data.reviews || 0,
+                            price: data.price || 15000,
                             delivery: data.delivery || ['download'],
-                            description: data.description
+                            description: data.description || 'No description available.'
                         });
                     });
                     
-                    // Sort datasets by category then ID to look neat
                     fetched.sort((a, b) => {
-                        if (a.category !== b.category) {
-                            return a.category.localeCompare(b.category);
+                        const catA = a.category || '';
+                        const catB = b.category || '';
+                        if (catA !== catB) {
+                            return catA.localeCompare(catB);
                         }
-                        return a.id.localeCompare(b.id);
+                        const idA = a.id || '';
+                        const idB = b.id || '';
+                        return idA.localeCompare(idB);
                     });
+                    
                     setDatasets(fetched);
                 } else {
                     setDatasets(fallbackDatasets);
                 }
             } catch (err) {
                 console.error("Error fetching datasets from Firestore: ", err);
-                setDatasets(fallbackDatasets);
+                if (active) {
+                    clearTimeout(timeoutId);
+                    setDatasets(fallbackDatasets);
+                }
             } finally {
-                setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
         fetchDatasets();
+        return () => {
+            active = false;
+        };
     }, []);
 
     const filteredDatasets = datasets.filter(ds =>
