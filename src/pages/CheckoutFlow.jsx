@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info, FileText, ClipboardList, Clock } from 'lucide-react';
+import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info, FileText, ClipboardList, Clock, Activity } from 'lucide-react';
+import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
+import { DATASET_REGISTRY as fallbackRegistry } from '../data/datasetsRegistry';
 
 export const Customize = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const datasetId = location.state?.datasetId || 'AUR-EHR-101';
+
+    const [dataset, setDataset] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     // State for all form selections
     const [format, setFormat] = useState('');
-    const [records, setRecords] = useState(10000);
-    const [districts, setDistricts] = useState('5 Districts');
+    const [records, setRecords] = useState(50);
+    const [districts, setDistricts] = useState('All Districts');
     const [region, setRegion] = useState('All Regions');
     const [ageMin, setAgeMin] = useState(18);
     const [ageMax, setAgeMax] = useState(85);
@@ -18,9 +27,49 @@ export const Customize = () => {
     const [apiAccess, setApiAccess] = useState(false);
     const [dataUpdates, setDataUpdates] = useState(false);
 
+    useEffect(() => {
+        const fetchDataset = async () => {
+            try {
+                const docRef = doc(db, 'datasets', datasetId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setDataset(docSnap.data());
+                } else {
+                    setDataset(fallbackRegistry[datasetId] || fallbackRegistry['AUR-EHR-101']);
+                }
+            } catch (err) {
+                console.error("Error fetching dataset in Customize step: ", err);
+                setDataset(fallbackRegistry[datasetId] || fallbackRegistry['AUR-EHR-101']);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDataset();
+    }, [datasetId]);
+
+    // Set default format once dataset loads
+    useEffect(() => {
+        if (dataset && dataset.formats && dataset.formats.length > 0) {
+            setFormat(dataset.formats[0]);
+        }
+    }, [dataset]);
+
+    if (loading) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="text-center relative z-10">
+                    <div className="inline-flex w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-4"></div>
+                    <p className="text-slate-400 text-sm tracking-wide">Initiating customizer sandbox...</p>
+                </div>
+            </div>
+        );
+    }
+
     // Pricing calculation
-    const basePrice = 165917;
-    const additionalServicesPrice = (apiAccess ? 41417 : 0) + (dataUpdates ? 82917 : 0);
+    const basePrice = dataset?.price || 16500;
+    const additionalServicesPrice = (apiAccess ? 4140 : 0) + (dataUpdates ? 8290 : 0);
     const total = basePrice + additionalServicesPrice;
 
     return (
@@ -33,27 +82,32 @@ export const Customize = () => {
                     <div className="lg:col-span-2 space-y-10">
                         <div>
                             <h1 className="text-3xl font-bold text-primary mb-2">Dataset Configuration</h1>
-                            <p className="text-secondary pb-6 border-b border-glass-border">Customize your Cardiovascular Health cohort parameters</p>
+                            <p className="text-secondary pb-6 border-b border-glass-border">Customize your {dataset?.name} cohort parameters</p>
                         </div>
 
                         {/* Format */}
                         <div className="space-y-4">
                             <h3 className="text-xl font-bold text-primary">Select Format</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {[
-                                    { id: 'CSV', desc: 'Comma-separated values' },
-                                    { id: 'JSON', desc: 'JavaScript Object Notation' },
-                                    { id: 'Excel', desc: 'Microsoft Excel format' }
-                                ].map(fmt => (
-                                    <div
-                                        key={fmt.id}
-                                        onClick={() => setFormat(fmt.id)}
-                                        className={`p-4 rounded-xl border cursor-pointer transition-all ${format === fmt.id ? 'bg-blue-500/20 border-blue-500' : 'bg-slate-800/50 border-slate-700 hover:border-slate-500'}`}
-                                    >
-                                        <div className={`font-bold ${format === fmt.id ? 'text-blue-400' : 'text-primary'}`}>{fmt.id}</div>
-                                        <div className="text-xs text-slate-400 mt-1">{fmt.desc}</div>
-                                    </div>
-                                ))}
+                                {(dataset?.formats || ['CSV', 'JSON', 'Excel']).map(fmtId => {
+                                    const desc = fmtId === 'CSV' ? 'Comma-separated values' :
+                                                 fmtId === 'JSON' ? 'JavaScript Object Notation' :
+                                                 fmtId === 'FHIR R4' ? 'HL7 FHIR clinical format' :
+                                                 fmtId === 'VCF' ? 'Variant Call Format (Genomics)' :
+                                                 fmtId === 'DICOM' ? 'DICOM Metadata & Fields' :
+                                                 fmtId === 'Parquet' ? 'Apache Parquet column-oriented' :
+                                                 fmtId === 'SQL' ? 'SQL Insert Queries' : 'Structured data format';
+                                    return (
+                                        <div
+                                            key={fmtId}
+                                            onClick={() => setFormat(fmtId)}
+                                            className={`p-4 rounded-xl border cursor-pointer transition-all ${format === fmtId ? 'bg-blue-500/20 border-blue-500' : 'bg-slate-800/50 border-slate-700 hover:border-slate-500'}`}
+                                        >
+                                            <div className={`font-bold ${format === fmtId ? 'text-blue-400' : 'text-primary'}`}>{fmtId}</div>
+                                            <div className="text-xs text-slate-400 mt-1">{desc}</div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -61,28 +115,28 @@ export const Customize = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between items-end">
                                 <h3 className="text-xl font-bold text-primary">Number of Records</h3>
-                                <div className="text-2xl font-bold text-blue-400">{records.toLocaleString()}</div>
+                                <div className="text-2xl font-bold text-blue-400">{records}</div>
                             </div>
                             <input
                                 type="range"
-                                min="1000"
-                                max="125847"
+                                min="10"
+                                max="50"
                                 value={records}
                                 onChange={(e) => setRecords(Number(e.target.value))}
                                 className="w-full accent-blue-500"
                             />
                             <div className="flex justify-between text-xs text-slate-500">
-                                <span>Min: 1,000</span>
-                                <span>Max: 125,847 records</span>
+                                <span>Min: 10 records</span>
+                                <span>Max: 50 records</span>
                             </div>
                             <div className="flex gap-3 pt-2">
-                                {[10000, 25000, 50000, 125847].map(val => (
+                                {[10, 25, 50].map(val => (
                                     <button
                                         key={val}
                                         onClick={() => setRecords(val)}
                                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${records === val ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300'}`}
                                     >
-                                        {val === 125847 ? 'All' : `${val / 1000}K`}
+                                        {val === 50 ? 'All (50)' : `${val} Records`}
                                     </button>
                                 ))}
                             </div>
@@ -157,14 +211,14 @@ export const Customize = () => {
                                 <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
                                     <input type="checkbox" checked={apiAccess} onChange={() => setApiAccess(!apiAccess)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">API Access <span className="text-xs text-blue-400 ml-2">+₹41,417</span></div>
+                                        <div className="text-primary font-bold">API Access <span className="text-xs text-blue-400 ml-2">+₹4,140</span></div>
                                         <div className="text-xs text-slate-400 mt-1">Real-time data access via REST API</div>
                                     </div>
                                 </label>
                                 <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
                                     <input type="checkbox" checked={dataUpdates} onChange={() => setDataUpdates(!dataUpdates)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">Data Updates <span className="text-xs text-blue-400 ml-2">+₹82,917</span></div>
+                                        <div className="text-primary font-bold">Data Updates <span className="text-xs text-blue-400 ml-2">+₹8,290</span></div>
                                         <div className="text-xs text-slate-400 mt-1">Quarterly dataset updates for 1 year</div>
                                     </div>
                                 </label>
@@ -181,7 +235,7 @@ export const Customize = () => {
                             <div className="space-y-4 text-sm mb-6 border-b border-glass-border pb-6">
                                 <div className="flex justify-between items-start">
                                     <span className="text-slate-400">Dataset</span>
-                                    <span className="text-primary font-semibold text-right max-w-[150px]">Cardiovascular Health</span>
+                                    <span className="text-primary font-semibold text-right max-w-[150px]">{dataset?.name}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-400">Records</span>
@@ -225,6 +279,10 @@ export const Customize = () => {
                                                 records,
                                                 format,
                                                 districts,
+                                                datasetId: dataset.id,
+                                                datasetName: dataset.name,
+                                                category: dataset.category,
+                                                doi: dataset.doi
                                             }
                                         });
                                     }}
@@ -550,6 +608,9 @@ export const IrbReview = () => {
 export const Checkout = () => {
     const navigate = useNavigate();
     const { state: order } = useLocation();
+    const { user } = useAuth();
+    const [submitting, setSubmitting] = useState(false);
+
     const total = order?.total ?? 0;
     const basePrice = order?.basePrice ?? 0;
     const addons = order?.additionalServicesPrice ?? 0;
@@ -557,6 +618,42 @@ export const Checkout = () => {
     const format = order?.format ?? '--';
     const districts = order?.districts ?? '--';
     const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}.00`;
+
+    const handlePay = async () => {
+        if (!user) {
+            alert("Please log in to complete your purchase.");
+            navigate('/login');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            // Save purchase documentation package to Firestore
+            const purchaseData = {
+                userId: user.uid,
+                datasetId: order.datasetId || 'AUR-EHR-101',
+                datasetName: order.datasetName || 'Longitudinal ICU Encounters',
+                category: order.category || 'EHR',
+                price: order.total || 16500,
+                format: order.format || 'CSV',
+                recordsCount: order.records || 50,
+                purchaseDate: new Date().toISOString(),
+                status: 'Active',
+                license: 'Academic Research License',
+                doi: order.doi || '10.5281/auratral.ehr.ehr-101'
+            };
+
+            await addDoc(collection(db, 'purchases'), purchaseData);
+            alert("Payment processed successfully! Your dataset has been provisioned. Redirecting to Dashboard.");
+            navigate('/dashboard');
+        } catch (err) {
+            console.error("Error saving purchase to Firestore: ", err);
+            alert("Payment simulated successfully, but we encountered an error setting up your dashboard access. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="pt-32 pb-16 min-h-screen">
             <div className="container mx-auto px-8 max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -568,25 +665,34 @@ export const Checkout = () => {
                     <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-2">Email for License Key</label>
-                            <input type="email" className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-primary outline-none" placeholder="team@company.com" />
+                            <input type="email" className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-primary outline-none" defaultValue={user?.email || ''} placeholder="team@company.com" />
                         </div>
 
                         <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg">
                             <div className="flex items-center gap-2 mb-4 text-slate-300">
                                 <CreditCard size={18} /> Card Details
                             </div>
-                            <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none mb-3" placeholder="Card Number" />
+                            <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none mb-3" placeholder="Card Number" defaultValue="4242 •••• •••• 4242" />
                             <div className="grid grid-cols-2 gap-3">
-                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="MM / YY" />
-                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="CVC" />
+                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="MM / YY" defaultValue="12 / 28" />
+                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="CVC" defaultValue="123" />
                             </div>
                         </div>
 
-                        <button onClick={() => {
-                            alert("Payment mocked successfully. Navigating home.");
-                            navigate('/');
-                        }} className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(45,212,191,0.2)]">
-                            <Lock size={16} /> Pay {fmt(total)}
+                        <button 
+                            onClick={handlePay} 
+                            disabled={submitting}
+                            className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(45,212,191,0.2)] disabled:opacity-50"
+                        >
+                            {submitting ? (
+                                <>
+                                    <Activity className="animate-spin" size={16} /> Processing Payment...
+                                </>
+                            ) : (
+                                <>
+                                    <Lock size={16} /> Pay {fmt(total)}
+                                </>
+                            )}
                         </button>
                         <p className="text-[10px] text-center text-slate-500">Secured by 256-bit SSL encryption</p>
                     </form>

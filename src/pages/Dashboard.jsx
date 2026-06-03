@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Database, Key, CreditCard, Activity, ArrowRight, Download, Settings, FileText, File, X, Plus, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { DATASET_REGISTRY as fallbackRegistry } from '../data/datasetsRegistry';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -46,18 +49,243 @@ const Dashboard = () => {
         credits: 12500
     };
 
-    const baseDatasets = [
-        { id: 'AUR-EHR-00087', name: 'Longitudinal ICU Encounters', access: 'API & Download', status: 'Active', expiry: 'Jan 15, 2027', license: 'Enterprise Standard', doi: '10.5281/auratral.ehr.00087' },
-        { id: 'AUR-IMG-00102', name: 'Annotated Chest X-Rays', access: 'Docker Env', status: 'Provisioning', expiry: 'Oct 01, 2027', license: 'Academic Single-Year', doi: '10.5281/auratral.img.00102' }
-    ];
-    
-    const extraDatasets = [
-        { id: 'AUR-GEN-00912', name: 'Oncology Genomics Full Sequence', access: 'API Streaming', status: 'Active', expiry: 'Mar 22, 2028', license: 'Multi-Year Extended', doi: '10.5281/auratral.gen.00912' },
-        { id: 'AUR-EHR-00214', name: 'Pediatric Asthma Cohort', access: 'Download', status: 'Active', expiry: 'Dec 01, 2026', license: 'Academic Half-Year', doi: '10.5281/auratral.ehr.00214' },
-        { id: 'AUR-TRL-00511', name: 'Phase III Cardiovascular Trials', access: 'Docker Env', status: 'Active', expiry: 'Nov 12, 2027', license: 'Enterprise Standard', doi: '10.5281/auratral.trl.00511' }
-    ];
+    const [purchases, setPurchases] = useState([]);
+    const [loadingPurchases, setLoadingPurchases] = useState(true);
+    const [downloading, setDownloading] = useState(false);
 
-    const activeDatasets = showAllDatasets ? [...baseDatasets, ...extraDatasets] : baseDatasets;
+    useEffect(() => {
+        const fetchPurchases = async () => {
+            if (!authUser) return;
+            try {
+                const q = query(collection(db, 'purchases'), where('userId', '==', authUser.uid));
+                const snapshot = await getDocs(q);
+                const fetched = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    fetched.push({
+                        id: data.datasetId,
+                        name: data.datasetName,
+                        category: data.category,
+                        access: `API & ${data.format} Download`,
+                        status: data.status || 'Active',
+                        expiry: new Date(new Date(data.purchaseDate).setFullYear(new Date(data.purchaseDate).getFullYear() + 1)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                        license: data.license || 'Academic Research License',
+                        doi: data.doi,
+                        purchaseDate: data.purchaseDate,
+                        selectedFormat: data.format,
+                        recordsCount: data.recordsCount || 50
+                    });
+                });
+                fetched.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+                setPurchases(fetched);
+            } catch (err) {
+                console.error("Error fetching purchases: ", err);
+            } finally {
+                setLoadingPurchases(false);
+            }
+        };
+        fetchPurchases();
+    }, [authUser]);
+
+    const handleDownload = async (datasetId, format, datasetName) => {
+        setDownloading(true);
+        try {
+            const docRef = doc(db, 'datasets', datasetId);
+            const docSnap = await getDoc(docRef);
+            let records = [];
+            let columns = [];
+            
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                records = data.recordsData || [];
+                columns = data.columns || [];
+            } else {
+                const localData = fallbackRegistry[datasetId];
+                if (localData) {
+                    records = localData.recordsData || [];
+                    columns = localData.columns || [];
+                }
+            }
+
+            if (records.length === 0) {
+                alert("Could not load data records for download.");
+                return;
+            }
+
+            let fileContent = '';
+            let mimeType = 'text/plain';
+            let fileExtension = 'txt';
+
+            const cleanVal = (v) => {
+                if (v === null || v === undefined) return '';
+                return String(v).replace(/"/g, '""');
+            };
+
+            const selectedFmt = format.toUpperCase();
+
+            if (selectedFmt === 'CSV') {
+                const headers = columns.map(c => c.name);
+                const csvRows = [headers.join(',')];
+                
+                records.forEach(row => {
+                    const values = headers.map(header => {
+                        const val = row[header];
+                        return `"${cleanVal(val)}"`;
+                    });
+                    csvRows.push(values.join(','));
+                });
+                
+                fileContent = csvRows.join('\n');
+                mimeType = 'text/csv;charset=utf-8;';
+                fileExtension = 'csv';
+            } 
+            else if (selectedFmt === 'JSON') {
+                fileContent = JSON.stringify(records, null, 2);
+                mimeType = 'application/json;charset=utf-8;';
+                fileExtension = 'json';
+            } 
+            else if (selectedFmt === 'SQL') {
+                const tableName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const headers = columns.map(c => c.name);
+                const sqlStatements = [
+                    `-- Auratral Dynamic SQL Export`,
+                    `-- Dataset: ${datasetName}`,
+                    `-- Generated on ${new Date().toISOString()}`,
+                    `CREATE TABLE ${tableName} (`,
+                    columns.map(c => `  ${c.name} ${c.dtype === 'Int32' ? 'INTEGER' : c.dtype === 'Float32' ? 'NUMERIC' : c.dtype === 'Boolean' ? 'BOOLEAN' : 'VARCHAR(255)'}`).join(',\n'),
+                    `);\n`
+                ];
+
+                records.forEach(row => {
+                    const values = headers.map(header => {
+                        const val = row[header];
+                        if (val === null || val === undefined) return 'NULL';
+                        if (typeof val === 'boolean' || val === 'true' || val === 'false') return String(val).toLowerCase();
+                        if (typeof val === 'number') return val;
+                        return `'${cleanVal(val)}'`;
+                    });
+                    sqlStatements.push(`INSERT INTO ${tableName} (${headers.join(', ')}) VALUES (${values.join(', ')});`);
+                });
+
+                fileContent = sqlStatements.join('\n');
+                mimeType = 'application/sql;charset=utf-8;';
+                fileExtension = 'sql';
+            } 
+            else if (selectedFmt === 'FHIR R4') {
+                const fhirBundle = {
+                    resourceType: "Bundle",
+                    type: "transaction",
+                    entry: []
+                };
+
+                records.forEach((row, rIdx) => {
+                    const pId = row.patient_id || row.subject_id || row.maternal_id || row.respondent_id || `patient-${rIdx}`;
+                    const patientResource = {
+                        resource: {
+                            resourceType: "Patient",
+                            id: pId,
+                            gender: row.gender ? row.gender.toLowerCase() : "unknown",
+                            birthDate: row.age ? new Date(new Date().getFullYear() - row.age, 0, 1).toISOString().split('T')[0] : undefined
+                        },
+                        request: {
+                            method: "POST",
+                            url: "Patient"
+                        }
+                    };
+                    fhirBundle.entry.push(patientResource);
+
+                    Object.keys(row).forEach(key => {
+                        if (!['patient_id', 'subject_id', 'maternal_id', 'respondent_id', 'gender', 'age'].includes(key) && row[key] !== null) {
+                            const observationResource = {
+                                resource: {
+                                    resourceType: "Observation",
+                                    status: "final",
+                                    code: {
+                                        coding: [{
+                                            system: "http://loinc.org",
+                                            code: `aur-${key}`,
+                                            display: key.replace(/_/g, ' ')
+                                        }]
+                                    },
+                                    subject: {
+                                        reference: `Patient/${pId}`
+                                    },
+                                    valueString: typeof row[key] === 'string' ? row[key] : undefined,
+                                    valueQuantity: typeof row[key] === 'number' ? {
+                                        value: row[key],
+                                        unit: columns.find(c => c.name === key)?.units || ''
+                                    } : undefined,
+                                    valueBoolean: typeof row[key] === 'boolean' ? row[key] : undefined
+                                },
+                                request: {
+                                    method: "POST",
+                                    url: "Observation"
+                                }
+                            };
+                            fhirBundle.entry.push(observationResource);
+                        }
+                    });
+                });
+
+                fileContent = JSON.stringify(fhirBundle, null, 2);
+                mimeType = 'application/fhir+json;charset=utf-8;';
+                fileExtension = 'fhir.json';
+            } 
+            else if (selectedFmt === 'VCF') {
+                const vcfLines = [
+                    '##fileformat=VCFv4.2',
+                    `##fileDate=${new Date().toISOString().split('T')[0]}`,
+                    '##source=AuratralGenomicsExporter',
+                    '##reference=GRCh38',
+                    '##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">',
+                    '##INFO=<ID=SIG,Number=1,Type=String,Description="Clinical Significance">',
+                    '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO'
+                ];
+
+                records.forEach(row => {
+                    const chrom = row.chromosome || '1';
+                    const pos = row.position || '100000';
+                    const variantId = row.variant_id || 'rs0000';
+                    const ref = row.ref_allele || 'N';
+                    const alt = row.alt_allele || 'N';
+                    const af = row.allele_frequency !== undefined ? row.allele_frequency : '0.0';
+                    const sig = row.clinical_significance || 'Unknown';
+                    vcfLines.push(`${chrom}\t${pos}\t${variantId}\t${ref}\t${alt}\t100\tPASS\tAF=${af};SIG=${sig}`);
+                });
+
+                fileContent = vcfLines.join('\n');
+                mimeType = 'text/vcard;charset=utf-8;';
+                fileExtension = 'vcf';
+            }
+            else {
+                const headers = Object.keys(records[0]);
+                const csvRows = [headers.join(',')];
+                records.forEach(row => {
+                    csvRows.push(headers.map(h => `"${cleanVal(row[h])}"`).join(','));
+                });
+                fileContent = csvRows.join('\n');
+                mimeType = 'text/csv;charset=utf-8;';
+                fileExtension = 'csv';
+            }
+
+            const blob = new Blob([fileContent], { type: mimeType });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            const safeName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            link.setAttribute("download", `${safeName}_50_records.${fileExtension}`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) {
+            console.error("Error generating file download: ", err);
+            alert("Failed to generate file download.");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    const activeDatasets = purchases;
 
     const recentActivity = [
         { action: 'API Key Generated', time: '2 hours ago', detail: 'Production Key - Read Only' },
@@ -158,14 +386,13 @@ const Dashboard = () => {
                 {/* Main Content Area */}
                 {activeTab === 'overview' ? (
                     <>
-                        {/* KPI Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             <div className="glass-panel p-6 border-t-2 border-t-purple-500">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Active Cohorts</h3>
                                     <Database size={20} className="text-purple-400" />
                                 </div>
-                                <div className="text-3xl font-bold text-primary mb-1">3</div>
+                                <div className="text-3xl font-bold text-primary mb-1">{activeDatasets.length}</div>
                                 <div className="text-xs text-blue-400 flex items-center gap-1">
                                     <Activity size={12} /> Syncing live updates
                                 </div>
@@ -176,7 +403,7 @@ const Dashboard = () => {
                                     <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">API Requests</h3>
                                     <Activity size={20} className="text-blue-400" />
                                 </div>
-                                <div className="text-3xl font-bold text-primary mb-1">12.4k</div>
+                                <div className="text-3xl font-bold text-primary mb-1">{activeDatasets.length > 0 ? "12.4k" : "0"}</div>
                                 <div className="text-xs text-slate-500">Last 30 days</div>
                             </div>
 
@@ -185,7 +412,7 @@ const Dashboard = () => {
                                     <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Storage Used</h3>
                                     <Download size={20} className="text-indigo-400" />
                                 </div>
-                                <div className="text-3xl font-bold text-primary mb-1">42.8 GB</div>
+                                <div className="text-3xl font-bold text-primary mb-1">{activeDatasets.length > 0 ? `${(activeDatasets.length * 0.05).toFixed(2)} MB` : "0 KB"}</div>
                                 <div className="text-xs text-slate-500">of 100 GB (Academic Plan)</div>
                             </div>
 
@@ -211,35 +438,44 @@ const Dashboard = () => {
                                         <h2 className="text-xl font-bold text-primary flex items-center gap-2">
                                             <Database size={20} className="text-purple-400" /> Provisioned Datasets
                                         </h2>
-                                        <button 
-                                            onClick={() => setShowAllDatasets(!showAllDatasets)}
-                                            className="text-sm text-blue-400 hover:text-blue-300 font-semibold transition-colors"
-                                        >
-                                            {showAllDatasets ? 'Show Less' : 'View All'}
-                                        </button>
                                     </div>
 
                                     <div className="space-y-4">
-                                        {activeDatasets.map((ds, idx) => (
-                                            <div key={idx} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-purple-500/50 transition-colors group">
-                                                <div className="cursor-pointer" onClick={() => { setDetailsDataset(ds); setDetailsModalOpen(true); }}>
-                                                    <div className="text-xs font-mono text-slate-400 mb-1 group-hover:text-purple-400 transition-colors">{ds.id}</div>
-                                                    <h3 className="font-bold text-primary hover:underline decoration-purple-500/50 underline-offset-4">{ds.name}</h3>
-                                                    <div className="text-sm text-slate-400 mt-1">Access: {ds.access}</div>
-                                                </div>
-                                                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
-                                                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${ds.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
-                                                        {ds.status}
-                                                    </span>
-                                                    <button 
-                                                        onClick={() => { setManagingDataset(ds); setManageModalOpen(true); }}
-                                                        className="btn btn-outline py-1.5 px-4 text-xs"
-                                                    >
-                                                        Manage
-                                                    </button>
-                                                </div>
+                                        {loadingPurchases ? (
+                                            <div className="text-center py-12">
+                                                <div className="inline-flex w-10 h-10 rounded-full border-2 border-purple-500/30 border-t-purple-500 animate-spin mb-2"></div>
+                                                <p className="text-slate-400 text-xs">Syncing purchases registry...</p>
                                             </div>
-                                        ))}
+                                        ) : activeDatasets.length === 0 ? (
+                                            <div className="text-center py-12 border border-dashed border-slate-700/50 rounded-xl">
+                                                <Database className="mx-auto text-slate-600 mb-3" size={40} />
+                                                <p className="text-slate-400 text-sm mb-4">No active cohorts purchased yet.</p>
+                                                <Link to="/gallery" className="btn btn-primary text-xs py-2.5 px-4 inline-flex items-center gap-2">
+                                                    Browse Gallery <ArrowRight size={14} />
+                                                </Link>
+                                            </div>
+                                        ) : (
+                                            activeDatasets.map((ds, idx) => (
+                                                <div key={idx} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-purple-500/50 transition-colors group">
+                                                    <div className="cursor-pointer" onClick={() => { setDetailsDataset(ds); setDetailsModalOpen(true); }}>
+                                                        <div className="text-xs font-mono text-slate-400 mb-1 group-hover:text-purple-400 transition-colors">{ds.id}</div>
+                                                        <h3 className="font-bold text-primary hover:underline decoration-purple-500/50 underline-offset-4">{ds.name}</h3>
+                                                        <div className="text-sm text-slate-400 mt-1">Access: {ds.access}</div>
+                                                    </div>
+                                                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
+                                                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${ds.status === 'Active' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
+                                                            {ds.status}
+                                                        </span>
+                                                        <button 
+                                                            onClick={() => { setManagingDataset(ds); setManageModalOpen(true); }}
+                                                            className="btn btn-outline py-1.5 px-4 text-xs"
+                                                        >
+                                                            Manage
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
 
@@ -480,10 +716,11 @@ const Dashboard = () => {
                                         <p className="font-semibold text-white">{detailsDataset.access}</p>
                                     </div>
                                     <button 
-                                        className="mt-4 w-full btn btn-outline py-2 px-3 text-xs flex justify-center items-center gap-2 border-slate-600 hover:border-blue-400 hover:text-blue-400 transition-colors"
-                                        onClick={() => alert(`Initiating ${getAccessAction(detailsDataset.access).desc} for ${detailsDataset.name}...`)}
+                                        className="mt-4 w-full btn btn-outline py-2 px-3 text-xs flex justify-center items-center gap-2 border-slate-600 hover:border-blue-400 hover:text-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={() => handleDownload(detailsDataset.id, detailsDataset.selectedFormat, detailsDataset.name)}
+                                        disabled={downloading}
                                     >
-                                        <Download size={14} /> {getAccessAction(detailsDataset.access).label}
+                                        <Download size={14} className={downloading ? "animate-bounce" : ""} /> {downloading ? 'Downloading...' : getAccessAction(detailsDataset.access).label}
                                     </button>
                                 </div>
                                 <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-4 flex flex-col justify-between">

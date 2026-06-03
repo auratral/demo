@@ -1,50 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight } from 'lucide-react';
-
-const allDatasets = [
-    {
-        id: 'AUR-EHR-00087', name: 'Longitudinal ICU Encounters', category: 'EHR', records: '186,000',
-        formats: ['CSV', 'Parquet', 'FHIR'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.9, price: 12367,
-        delivery: ['api', 'docker'], description: 'Comprehensive intensive care unit records including vitals and outcomes.'
-    },
-    {
-        id: 'AUR-IMG-00143', name: 'High-Res Chest X-Ray Annotations', category: 'Imaging', records: '45,200',
-        formats: ['DICOM', 'JSON'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.8, price: 24817,
-        delivery: ['download'], description: 'Expert radiologist annotated chest x-rays for pneumonia detection.'
-    },
-    {
-        id: 'AUR-PVM-00021', name: 'FDA FAERS Curated Extract', category: 'Pharma', records: '2,400,000',
-        formats: ['CSV', 'SQL'], compliance: ['Aggregated'], rating: 4.7, price: 49717,
-        delivery: ['api', 'docker', 'download'], description: 'Post-market drug safety and adverse reaction monitoring extract.'
-    },
-    {
-        id: 'AUR-GEN-00092', name: 'Cancer Genome Atlas Subset', category: 'Genomics', records: '12,500',
-        formats: ['VCF', 'CSV'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 5.0, price: 'Custom',
-        delivery: ['docker'], description: 'Whole genome sequencing data mapped to clinical oncology outcomes.'
-    },
-    {
-        id: 'AUR-MNT-00034', name: 'PHQ-9 Population Cohort', category: 'Mental Health', records: '340,000',
-        formats: ['JSON', 'CSV'], compliance: ['GDPR-Ready', 'HIPAA', 'DPDP Compliant'], rating: 4.6, price: 16517,
-        delivery: ['download', 'api'], description: 'Large scale depression screening results linked to socioeconomic indicators.'
-    },
-    {
-        id: 'AUR-RLW-00105', name: 'Real-World Diabetes Outcomes', category: 'Trials', records: '56,000',
-        formats: ['Parquet', 'CSV'], compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'], rating: 4.8, price: 33117,
-        delivery: ['docker', 'api'], description: 'Longitudinal HbA1c tracking and medication adherence in Type 2 Diabetes.'
-    }
-];
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
+import { allDatasets as fallbackDatasets } from '../data/datasetsRegistry';
 
 const categories = ['All', 'EHR', 'Imaging', 'Pharma', 'Genomics', 'Mental Health', 'Trials'];
 
 const Gallery = () => {
+    const [datasets, setDatasets] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredDatasets = allDatasets.filter(ds =>
+    useEffect(() => {
+        const fetchDatasets = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'datasets'));
+                if (!querySnapshot.empty) {
+                    const fetched = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        fetched.push({
+                            id: data.id,
+                            name: data.name,
+                            category: data.category,
+                            records: data.records,
+                            formats: data.formats,
+                            compliance: data.compliance,
+                            rating: data.rating,
+                            price: data.price,
+                            delivery: data.delivery || ['download'],
+                            description: data.description
+                        });
+                    });
+                    
+                    // Sort datasets by category then ID to look neat
+                    fetched.sort((a, b) => {
+                        if (a.category !== b.category) {
+                            return a.category.localeCompare(b.category);
+                        }
+                        return a.id.localeCompare(b.id);
+                    });
+                    setDatasets(fetched);
+                } else {
+                    setDatasets(fallbackDatasets);
+                }
+            } catch (err) {
+                console.error("Error fetching datasets from Firestore: ", err);
+                setDatasets(fallbackDatasets);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDatasets();
+    }, []);
+
+    const filteredDatasets = datasets.filter(ds =>
         (activeCategory === 'All' || ds.category === activeCategory) &&
         (ds.name.toLowerCase().includes(searchQuery.toLowerCase()) || ds.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
+    if (loading) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="text-center relative z-10">
+                    <div className="inline-flex w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-4"></div>
+                    <p className="text-slate-400 text-sm tracking-wide">Syncing Clinical Cohort Network...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="pt-24 pb-24 min-h-screen font-sans relative overflow-hidden">

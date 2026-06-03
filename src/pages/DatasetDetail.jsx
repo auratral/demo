@@ -5,6 +5,9 @@ import {
     Table, BarChart2, Info, Eye, Database, Users
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Activity } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
    PER-DATASET MOCK DATA REGISTRY
@@ -298,17 +301,104 @@ const DatasetDetail = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const dataKey = DATASET_REGISTRY[id] ? id : FALLBACK_ID;
-    const { meta: dataset, columns: MOCK_COLUMNS, rows: SAMPLE_ROWS, defaultCohort } = DATASET_REGISTRY[dataKey];
+    const [datasetData, setDatasetData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [activeTab, setActiveTab] = useState('overview');
+    useEffect(() => {
+        const fetchDataset = async () => {
+            try {
+                const docRef = doc(db, 'datasets', id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setDatasetData(docSnap.data());
+                } else if (DATASET_REGISTRY[id]) {
+                    setDatasetData(DATASET_REGISTRY[id]);
+                } else {
+                    const keys = Object.keys(DATASET_REGISTRY);
+                    const matchingKey = keys.find(k => k.toLowerCase() === id?.toLowerCase()) || FALLBACK_ID;
+                    setDatasetData(DATASET_REGISTRY[matchingKey]);
+                }
+            } catch (err) {
+                console.error("Error fetching dataset from Firestore: ", err);
+                if (DATASET_REGISTRY[id]) {
+                    setDatasetData(DATASET_REGISTRY[id]);
+                } else {
+                    setDatasetData(DATASET_REGISTRY[FALLBACK_ID]);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDataset();
+    }, [id]);
 
     const handleProtectedAction = (e, path) => {
         e.preventDefault();
         if (!user) navigate('/login');
-        else if (path) navigate(path);
+        else if (path) navigate(path, { state: { datasetId: datasetData?.id } });
         else alert('This action requires a simulated backend response.');
     };
+
+    if (loading) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="absolute top-40 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[150px] pointer-events-none"></div>
+                <div className="text-center relative z-10">
+                    <div className="inline-flex w-16 h-16 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mb-4"></div>
+                    <p className="text-slate-400 text-sm tracking-wide">Syncing Clinical Metadata...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!datasetData) {
+        return (
+            <div className="pt-32 pb-24 min-h-screen flex items-center justify-center font-sans">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-400 mb-4">Dataset Not Found</h2>
+                    <Link to="/gallery" className="btn btn-outline">Return to Gallery</Link>
+                </div>
+            </div>
+        );
+    }
+
+    // Map database flat schema to details fields expected by the render code
+    const dataset = datasetData.meta ? datasetData.meta : {
+        name: datasetData.name,
+        source: datasetData.source || 'Multi-site Clinical Study Network',
+        category: datasetData.category,
+        subCategory: datasetData.subCategory,
+        rating: datasetData.rating || 4.8,
+        reviews: datasetData.reviews || 12,
+        records: datasetData.records,
+        variables: datasetData.columns.length,
+        formats: datasetData.formats,
+        compliance: datasetData.compliance,
+        updateFrequency: datasetData.updateFrequency || 'Quarterly Refreshed',
+        price: datasetData.price,
+        doi: datasetData.doi,
+        temporalCoverage: datasetData.temporalCoverage || '2020 – 2025',
+        completenessScore: datasetData.completenessScore || 98.5,
+        qualityScore: datasetData.qualityScore || 92,
+        description: datasetData.description
+    };
+
+    const defaultCohort = datasetData.defaultCohort ? datasetData.defaultCohort : {
+        records: datasetData.records,
+        gender: 'Balanced — 50% Male / 50% Female',
+        ageRange: '18 – 85 years',
+        region: 'Pan-India Cohort',
+        timePeriod: dataset.temporalCoverage,
+        conditions: `All ${datasetData.subCategory} patient admission types`,
+        exclusions: 'PII, incomplete records',
+        format: datasetData.formats[0]
+    };
+
+    const MOCK_COLUMNS = datasetData.columns;
+    const SAMPLE_ROWS = datasetData.rows;
+
+    const [activeTab, setActiveTab] = useState('overview');
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: Info },
