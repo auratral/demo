@@ -1,9 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Lock, Activity } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const handleAboutClick = (e) => {
+        e.preventDefault();
+        if (location.pathname === '/') {
+            // Already on home page — just scroll
+            const el = document.getElementById('about');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Navigate home, then scroll after render
+            navigate('/');
+            setTimeout(() => {
+                const el = document.getElementById('about');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+    };
+
     return (
         <footer className="footer border-t border-glass-border">
             <div className="container mx-auto px-8 max-w-7xl py-8">
@@ -24,7 +43,7 @@ const Footer = () => {
                         <Link to="/gallery" className="hover:text-blue-400 transition-colors">Gallery</Link>
                         <Link to="/pricing" className="hover:text-blue-400 transition-colors">Pricing</Link>
                         <Link to="/custom-request" className="hover:text-blue-400 transition-colors">Enterprise</Link>
-                        <Link to="/about" className="hover:text-blue-400 transition-colors">About</Link>
+                        <a href="/#about" onClick={handleAboutClick} className="hover:text-blue-400 transition-colors cursor-pointer">About</a>
                         <Link to="/legal/privacy" className="hover:text-blue-400 transition-colors">Privacy</Link>
                     </div>
 
@@ -51,3 +70,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
