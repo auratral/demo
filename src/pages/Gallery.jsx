@@ -1,21 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight } from 'lucide-react';
+import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight, X } from 'lucide-react';
 import { allDatasets as fallbackDatasets } from '../data/datasetsRegistry';
 
 const categories = ['All', 'EHR', 'Imaging', 'Pharma', 'Genomics', 'Mental Health', 'Trials'];
 
+const priceRanges = [
+    { label: 'Under ₹15,000', min: 0, max: 15000 },
+    { label: '₹15,000 – ₹25,000', min: 15000, max: 25000 },
+    { label: '₹25,000 – ₹40,000', min: 25000, max: 40000 },
+    { label: 'Above ₹40,000', min: 40000, max: Infinity },
+];
+
+const formatOptions = ['JSON', 'CSV', 'Parquet', 'FHIR R4', 'DICOM', 'VCF', 'SQL'];
+
+const sortOptions = [
+    { label: 'Most Relevant', key: 'relevant' },
+    { label: 'Price: Low to High', key: 'price_asc' },
+    { label: 'Price: High to Low', key: 'price_desc' },
+    { label: 'Highest Rated', key: 'rating' },
+    { label: 'Record Count', key: 'records' },
+];
+
 const Gallery = () => {
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedPriceRange, setSelectedPriceRange] = useState(null);
+    const [selectedFormats, setSelectedFormats] = useState([]);
+    const [sortBy, setSortBy] = useState('relevant');
 
     // Load instantly from local registry — no Firestore delay
     const datasets = fallbackDatasets;
 
-    const filteredDatasets = datasets.filter(ds =>
-        (activeCategory === 'All' || ds.category === activeCategory) &&
-        (ds.name.toLowerCase().includes(searchQuery.toLowerCase()) || ds.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const toggleFormat = (fmt) => {
+        setSelectedFormats(prev =>
+            prev.includes(fmt) ? prev.filter(f => f !== fmt) : [...prev, fmt]
+        );
+    };
+
+    const clearAllFilters = () => {
+        setActiveCategory('All');
+        setSearchQuery('');
+        setSelectedPriceRange(null);
+        setSelectedFormats([]);
+        setSortBy('relevant');
+    };
+
+    const activeFilterCount = (activeCategory !== 'All' ? 1 : 0)
+        + (searchQuery ? 1 : 0)
+        + (selectedPriceRange !== null ? 1 : 0)
+        + selectedFormats.length;
+
+    const filteredDatasets = useMemo(() => {
+        let results = datasets.filter(ds => {
+            // Category filter
+            if (activeCategory !== 'All' && ds.category !== activeCategory) return false;
+
+            // Search filter
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                if (!ds.name.toLowerCase().includes(q) && !ds.description.toLowerCase().includes(q) && !ds.category.toLowerCase().includes(q)) return false;
+            }
+
+            // Price range filter
+            if (selectedPriceRange !== null) {
+                const range = priceRanges[selectedPriceRange];
+                const price = typeof ds.price === 'number' ? ds.price : 0;
+                if (price < range.min || price >= range.max) return false;
+            }
+
+            // Export format filter
+            if (selectedFormats.length > 0) {
+                const dsFormats = (ds.formats || []).map(f => f.toUpperCase());
+                const hasMatch = selectedFormats.some(f => dsFormats.includes(f.toUpperCase()));
+                if (!hasMatch) return false;
+            }
+
+            return true;
+        });
+
+        // Sorting
+        if (sortBy === 'price_asc') {
+            results = [...results].sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (sortBy === 'price_desc') {
+            results = [...results].sort((a, b) => (b.price || 0) - (a.price || 0));
+        } else if (sortBy === 'rating') {
+            results = [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        } else if (sortBy === 'records') {
+            results = [...results].sort((a, b) => (parseInt(b.records) || 0) - (parseInt(a.records) || 0));
+        }
+
+        return results;
+    }, [datasets, activeCategory, searchQuery, selectedPriceRange, selectedFormats, sortBy]);
 
     return (
         <div className="pt-24 pb-24 min-h-screen font-sans relative overflow-hidden">
@@ -47,12 +123,47 @@ const Gallery = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} className="mr-2 text-slate-500 hover:text-slate-300 transition-colors">
+                                <X size={18} />
+                            </button>
+                        )}
                         <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-3 px-8 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all text-sm tracking-wide">
                             Search
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Active Filter Tags */}
+            {activeFilterCount > 0 && (
+                <div className="container mx-auto px-8 relative z-10 mb-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-widest mr-1">Active Filters:</span>
+                        {activeCategory !== 'All' && (
+                            <span className="inline-flex items-center gap-1.5 bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold px-3 py-1 rounded-full">
+                                {activeCategory}
+                                <X size={12} className="cursor-pointer hover:text-white" onClick={() => setActiveCategory('All')} />
+                            </span>
+                        )}
+                        {selectedPriceRange !== null && (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold px-3 py-1 rounded-full">
+                                {priceRanges[selectedPriceRange].label}
+                                <X size={12} className="cursor-pointer hover:text-white" onClick={() => setSelectedPriceRange(null)} />
+                            </span>
+                        )}
+                        {selectedFormats.map(fmt => (
+                            <span key={fmt} className="inline-flex items-center gap-1.5 bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-semibold px-3 py-1 rounded-full">
+                                {fmt}
+                                <X size={12} className="cursor-pointer hover:text-white" onClick={() => toggleFormat(fmt)} />
+                            </span>
+                        ))}
+                        <button onClick={clearAllFilters} className="text-xs text-red-400 hover:text-red-300 font-semibold ml-2 transition-colors">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Layout */}
             <div className="container mx-auto px-8 flex flex-col lg:flex-row gap-12 relative z-10">
@@ -63,57 +174,84 @@ const Gallery = () => {
                         <div className="flex items-center justify-between mb-8 pb-4 border-b border-glass-border">
                             <h3 className="text-primary font-bold text-lg flex items-center gap-2">
                                 <Filter size={18} className="text-purple-400" /> Filters
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-1 bg-purple-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
                             </h3>
                             <button
-                                className="text-xs text-slate-500 hover:text-blue-400 font-semibold"
-                                onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
+                                className="text-xs text-slate-500 hover:text-blue-400 font-semibold transition-colors"
+                                onClick={clearAllFilters}
                             >
                                 Clear All
                             </button>
                         </div>
 
+                        {/* Medical Domain Filter */}
                         <div className="mb-8">
                             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
                                 Medical Domain <ChevronDown size={14} />
                             </h3>
                             <div className="space-y-3">
                                 {categories.map(cat => (
-                                    <label key={cat} className="flex items-center gap-3 cursor-pointer group">
+                                    <div
+                                        key={cat}
+                                        className="flex items-center gap-3 cursor-pointer group"
+                                        onClick={() => setActiveCategory(cat)}
+                                    >
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${activeCategory === cat ? 'bg-blue-500 border-blue-500' : 'bg-slate-800 border-slate-600 group-hover:border-blue-400'}`}>
                                             {activeCategory === cat && <div className="w-2.5 h-2.5 bg-slate-900 rounded-sm"></div>}
                                         </div>
                                         <span
                                             className={`text-sm tracking-wide ${activeCategory === cat ? 'text-blue-400 font-bold' : 'text-slate-300 font-medium group-hover:text-primary transition-colors'}`}
-                                            onClick={() => setActiveCategory(cat)}
                                         >
                                             {cat}
                                         </span>
-                                    </label>
+                                    </div>
                                 ))}
                             </div>
                         </div>
 
+                        {/* Price Range Filter */}
                         <div className="mb-8">
                             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                                Compliance Level <ChevronDown size={14} />
+                                Price Range <ChevronDown size={14} />
                             </h3>
                             <div className="space-y-3">
-                                {['HIPAA Safe Harbor', 'GDPR Article 9 Ready', 'DPDP Act India', 'IRB-Compatible DUA'].map(comp => (
-                                    <label key={comp} className="flex items-center gap-3 cursor-pointer group">
-                                        <input type="checkbox" className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900 focus:ring-offset-2 accent-purple-500" />
-                                        <span className="text-sm font-medium text-slate-300 group-hover:text-primary transition-colors">{comp}</span>
-                                    </label>
+                                {priceRanges.map((range, idx) => (
+                                    <div
+                                        key={range.label}
+                                        className="flex items-center gap-3 cursor-pointer group"
+                                        onClick={() => setSelectedPriceRange(selectedPriceRange === idx ? null : idx)}
+                                    >
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedPriceRange === idx ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-800 border-slate-600 group-hover:border-emerald-400'}`}>
+                                            {selectedPriceRange === idx && <div className="w-2.5 h-2.5 bg-slate-900 rounded-sm"></div>}
+                                        </div>
+                                        <span className={`text-sm tracking-wide ${selectedPriceRange === idx ? 'text-emerald-400 font-bold' : 'text-slate-300 font-medium group-hover:text-primary transition-colors'}`}>
+                                            {range.label}
+                                        </span>
+                                    </div>
                                 ))}
                             </div>
                         </div>
 
+                        {/* Export Format Filter */}
                         <div className="mb-4">
                             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
                                 Export Format <ChevronDown size={14} />
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {['JSON', 'CSV', 'Parquet', 'FHIR R4', 'DICOM'].map(fmt => (
-                                    <span key={fmt} className="bg-slate-800 border border-slate-700 text-slate-400 px-3 py-1.5 rounded-md text-xs font-semibold cursor-pointer hover:border-purple-500 hover:text-purple-400 transition-colors shadow-sm">
+                                {formatOptions.map(fmt => (
+                                    <span
+                                        key={fmt}
+                                        onClick={() => toggleFormat(fmt)}
+                                        className={`px-3 py-1.5 rounded-md text-xs font-semibold cursor-pointer transition-all duration-200 shadow-sm ${
+                                            selectedFormats.includes(fmt)
+                                                ? 'bg-purple-500/20 border border-purple-500 text-purple-400 shadow-purple-500/10'
+                                                : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-purple-500 hover:text-purple-400'
+                                        }`}
+                                    >
                                         {fmt}
                                     </span>
                                 ))}
@@ -128,11 +266,14 @@ const Gallery = () => {
                         <div className="text-slate-400 text-sm">Showing <span className="text-primary font-bold text-lg">{filteredDatasets.length}</span> verified datasets</div>
                         <div className="flex items-center gap-3">
                             <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Sort by:</span>
-                            <select className="bg-slate-900 border border-slate-700 text-sm text-primary rounded-lg px-4 py-2 outline-none focus:border-purple-500 font-medium">
-                                <option>Most Relevant</option>
-                                <option>Newest Additions</option>
-                                <option>Highest Rated</option>
-                                <option>Record Count</option>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="bg-slate-900 border border-slate-700 text-sm text-primary rounded-lg px-4 py-2 outline-none focus:border-purple-500 font-medium"
+                            >
+                                {sortOptions.map(opt => (
+                                    <option key={opt.key} value={opt.key}>{opt.label}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -208,7 +349,7 @@ const Gallery = () => {
                             </p>
                             <button
                                 className="mt-8 btn btn-primary py-3 px-8 shadow-lg shadow-purple-500/20"
-                                onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
+                                onClick={clearAllFilters}
                             >
                                 Clear All Filters
                             </button>
