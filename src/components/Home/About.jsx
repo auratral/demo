@@ -1,141 +1,187 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Globe, Lock, Layers, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Layers, ShieldCheck, Sparkles, Globe, ArrowRight, Shield, Database, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const About = () => {
-    const capabilities = [
+    const pipelineSteps = [
         {
-            icon: Layers,
-            title: 'Acquire & Process',
-            desc: 'We source raw clinical data and transform it — annotating, structuring, and de-identifying every record to research-grade standards.',
+            icon: Database,
+            step: '01',
+            title: 'Ethical Acquisition',
+            desc: 'We secure diverse, high-fidelity datasets directly from certified clinical partners and healthcare institutions across India, ensuring clean and authentic raw inputs.',
             color: 'blue',
         },
         {
-            icon: ShieldCheck,
-            title: 'Compliance-Ready',
-            desc: 'Every dataset is governed under HIPAA, GDPR, and DPDP frameworks — so your team can focus on insights, not paperwork.',
+            icon: Shield,
+            step: '02',
+            title: 'De-identification & Privacy',
+            desc: 'We strip all personally identifiable information (PII) using state-of-the-art anonymization protocols to guarantee patient privacy while maintaining deep clinical utility.',
             color: 'purple',
         },
         {
-            icon: Sparkles,
-            title: 'AI-Ready Delivery',
-            desc: 'Structured, labeled, and export-ready in formats like CSV, FHIR R4, and JSON — plug directly into your ML pipelines.',
+            icon: Layers,
+            step: '03',
+            title: 'Annotation & Enrichment',
+            desc: 'Our experts structure and label datasets with rich clinical annotations, transforming raw healthcare files into standardized, high-value AI training data.',
             color: 'emerald',
         },
         {
-            icon: Globe,
-            title: 'India-First, Global Reach',
-            desc: 'Building the centralized data infrastructure India\'s research ecosystem has been missing — serving startups, labs, and enterprises alike.',
+            icon: Cpu,
+            step: '04',
+            title: 'Compliance & Delivery',
+            desc: 'We bundle datasets under strict governance (DPDP Act, HIPAA, and GDPR) ready for instant integration in formats like FHIR, CSV, and JSON.',
             color: 'amber',
         },
     ];
 
     const colors = {
-        blue:    { bg: 'from-blue-500/15 to-transparent', border: 'border-blue-500/20', icon: 'text-blue-400', iconBg: 'bg-blue-500/10', hover: 'hover:border-blue-500/40' },
-        purple:  { bg: 'from-purple-500/15 to-transparent', border: 'border-purple-500/20', icon: 'text-purple-400', iconBg: 'bg-purple-500/10', hover: 'hover:border-purple-500/40' },
-        emerald: { bg: 'from-emerald-500/15 to-transparent', border: 'border-emerald-500/20', icon: 'text-emerald-400', iconBg: 'bg-emerald-500/10', hover: 'hover:border-emerald-500/40' },
-        amber:   { bg: 'from-amber-500/15 to-transparent', border: 'border-amber-500/20', icon: 'text-amber-400', iconBg: 'bg-amber-500/10', hover: 'hover:border-amber-500/40' },
+        blue:    { bg: 'from-blue-500/10 to-transparent', border: 'border-blue-500/20', icon: 'text-blue-400', iconBg: 'bg-blue-500/10', hover: 'hover:border-blue-500/40', text: 'text-blue-400' },
+        purple:  { bg: 'from-purple-500/10 to-transparent', border: 'border-purple-500/20', icon: 'text-purple-400', iconBg: 'bg-purple-500/10', hover: 'hover:border-purple-500/40', text: 'text-purple-400' },
+        emerald: { bg: 'from-emerald-500/10 to-transparent', border: 'border-emerald-500/20', icon: 'text-emerald-400', iconBg: 'bg-emerald-500/10', hover: 'hover:border-emerald-500/40', text: 'text-emerald-400' },
+        amber:   { bg: 'from-amber-500/10 to-transparent', border: 'border-amber-500/20', icon: 'text-amber-400', iconBg: 'bg-amber-500/10', hover: 'hover:border-amber-500/40', text: 'text-amber-400' },
     };
 
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.12 }
+            transition: { staggerChildren: 0.1 }
         }
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 25, scale: 0.97 },
-        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 80, damping: 14 } }
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } }
     };
 
     return (
-        <section id="about" className="relative py-28 overflow-hidden">
-            {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[160px] pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[140px] pointer-events-none"></div>
+        <section id="about" className="relative py-28 overflow-hidden bg-[#070b13]/40 border-y border-glass-border">
+            {/* Soft Ambient Radial Lights */}
+            <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-purple-500/5 rounded-full blur-[130px] pointer-events-none"></div>
 
-            <div className="container mx-auto px-8 max-w-6xl relative z-10">
+            <div className="container mx-auto px-6 max-w-6xl relative z-10">
 
-                {/* Top section: headline + description side by side */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20">
-
-                    {/* Left: Headline */}
+                {/* Section Introduction */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start mb-20">
+                    
+                    {/* Left Headline (Column Span 5) */}
                     <motion.div
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.4 }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="lg:col-span-5"
+                        initial={{ opacity: 0, y: 25 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
                     >
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400 mb-4">About Auratral</p>
-                        <h2 className="text-3xl md:text-4xl lg:text-[2.6rem] font-extrabold text-primary leading-tight mb-6">
-                            Not a marketplace.<br />
-                            A <span className="text-gradient">Data-as-a-Service</span> platform.
+                        <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">
+                            Who We Are
+                        </span>
+                        <h2 className="text-3xl md:text-4xl lg:text-[2.5rem] font-black text-primary leading-tight mt-6 mb-4">
+                            Pioneering India’s <span className="text-gradient">Data-as-a-Service</span> Platform.
                         </h2>
-                        <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                        <p className="text-slate-400 text-base md:text-lg leading-relaxed">
+                            Auratral is transforming how researchers, builders, and clinical teams access and leverage high-quality, research-grade datasets.
+                        </p>
                     </motion.div>
 
-                    {/* Right: Description */}
+                    {/* Right Detailed Narrative (Column Span 7) */}
                     <motion.div
-                        initial={{ opacity: 0, x: 30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.4 }}
-                        transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
+                        className="lg:col-span-7 lg:pl-4 space-y-6 text-slate-300 text-sm md:text-base leading-relaxed"
+                        initial={{ opacity: 0, y: 25 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.15 }}
                     >
-                        <p className="text-slate-400 text-[1.05rem] leading-[1.8] mb-5">
-                            <span className="text-primary font-semibold">Auratral Dataspace</span> is a pioneering DaaS platform transforming how organizations access research-grade data in India. We don't simply collect and sell datasets — we <span className="text-slate-200">acquire, process, and enhance</span> data by annotating, de-identifying, structuring, and making it compliance-ready.
+                        <p className="border-l-2 border-blue-500/40 pl-4 font-medium text-slate-200">
+                            We do not simply collect and sell datasets. As a dedicated DaaS platform, we acquire, clean, and enrich clinical data, delivering AI-ready data solutions designed to power next-generation healthtech.
                         </p>
-                        <p className="text-slate-500 text-sm leading-relaxed">
-                            Our mission is to build a centralized, secure, and compliant data infrastructure where organizations can seamlessly access ethically governed, high-quality data for innovation across AI, analytics, and decision-making.
+                        <p className="text-slate-400">
+                            By acting as the processing and engineering layer between complex healthcare systems and modern data teams, Auratral strips away the complexity of data cleaning, annotation, compliance governance, and structural integration. Startups, laboratories, and large enterprises can now access high-fidelity data feeds within minutes rather than months.
                         </p>
                     </motion.div>
                 </div>
 
-                {/* Capability cards */}
-                <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-5"
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                >
-                    {capabilities.map((cap) => {
-                        const c = colors[cap.color];
-                        const Icon = cap.icon;
-                        return (
-                            <motion.div
-                                key={cap.title}
-                                variants={itemVariants}
-                                className={`group relative bg-gradient-to-br ${c.bg} backdrop-blur-sm border ${c.border} ${c.hover} rounded-2xl p-7 transition-all duration-400 cursor-default`}
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className={`shrink-0 w-11 h-11 rounded-xl ${c.iconBg} border ${c.border} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                                        <Icon size={20} className={c.icon} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-primary mb-1.5">{cap.title}</h3>
-                                        <p className="text-sm text-slate-400 leading-relaxed">{cap.desc}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </motion.div>
+                {/* Visual Pipeline Showcase */}
+                <div className="mb-20">
+                    <motion.div
+                        className="text-center mb-12"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                    >
+                        <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">The Auratral Advantage</span>
+                        <h3 className="text-2xl font-bold text-primary mt-2">How We Enhance & Engineer Data</h3>
+                    </motion.div>
 
-                {/* Bottom CTA strip */}
+                    <motion.div
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.1 }}
+                    >
+                        {pipelineSteps.map((step) => {
+                            const c = colors[step.color];
+                            const Icon = step.icon;
+                            return (
+                                <motion.div
+                                    key={step.title}
+                                    variants={itemVariants}
+                                    className={`group relative bg-gradient-to-b ${c.bg} backdrop-blur-md border ${c.border} ${c.hover} rounded-2xl p-6 transition-all duration-300 cursor-default flex flex-col justify-between`}
+                                >
+                                    <div>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className={`w-12 h-12 rounded-xl ${c.iconBg} border ${c.border} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
+                                                <Icon size={22} className={c.icon} />
+                                            </div>
+                                            <span className={`text-2xl font-extrabold opacity-25 group-hover:opacity-50 transition-opacity duration-300 ${c.text}`}>
+                                                {step.step}
+                                            </span>
+                                        </div>
+                                        <h4 className="text-lg font-bold text-primary mb-2 group-hover:text-white transition-colors">
+                                            {step.title}
+                                        </h4>
+                                        <p className="text-xs md:text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                                            {step.desc}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </motion.div>
+                </div>
+
+                {/* Detailed Mission Banner */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-6 text-center"
+                    transition={{ duration: 0.7 }}
+                    className="relative bg-gradient-to-r from-blue-950/20 to-purple-950/20 backdrop-blur-md border border-glass-border rounded-3xl p-8 md:p-12 overflow-hidden"
                 >
-                    <p className="text-slate-500 text-sm">Delivering high-value data solutions to researchers, startups, and enterprises.</p>
-                    <Link to="/gallery" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors group">
-                        Explore Datasets <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+                    <div className="relative z-10 max-w-4xl mx-auto text-center">
+                        <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                            Our Mission
+                        </span>
+                        <h3 className="text-2xl md:text-3xl font-extrabold text-primary leading-snug mt-6 mb-6">
+                            Building a centralized, secure, and compliant data infrastructure where organizations can seamlessly access ethically governed, high-quality data.
+                        </h3>
+                        <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                            Auratral is committed to fueling next-generation breakthroughs across clinical AI, healthcare analytics, and patient outcomes by making robust datasets accessible, compliant, and ready to deploy.
+                        </p>
+
+                        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                            <Link to="/gallery" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20">
+                                Explore Datasets <ArrowRight size={16} />
+                            </Link>
+                            <a href="#clinical-domains" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-sm font-semibold transition-all border border-glass-border">
+                                Browse Domains
+                            </a>
+                        </div>
+                    </div>
                 </motion.div>
 
             </div>
