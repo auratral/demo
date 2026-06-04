@@ -56,7 +56,7 @@ const About = () => {
     };
 
     return (
-        <section id="about" className="relative py-28 overflow-hidden bg-[#070b13]/40 border-y border-glass-border">
+        <section id="about" className="relative py-28 overflow-hidden bg-[#070b13]/40">
             {/* Soft Ambient Radial Lights */}
             <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-purple-500/5 rounded-full blur-[130px] pointer-events-none"></div>
