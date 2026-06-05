@@ -10,6 +10,15 @@ const Navbar = () => {
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearchKeyDown = (e) => {
+        if (e.key === 'Enter' && searchTerm.trim()) {
+            navigate(`/gallery?q=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm('');
+            setMobileNavOpen(false);
+        }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -100,6 +109,9 @@ const Navbar = () => {
                         type="text"
                         placeholder="Search datasets, ICD codes..."
                         className="search-input"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={handleSearchKeyDown}
                     />
                 </div>
 
@@ -179,6 +191,9 @@ const Navbar = () => {
                             type="text"
                             placeholder="Search datasets..."
                             className="w-full bg-slate-800/80 border border-slate-700 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-purple-500"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleSearchKeyDown}
                         />
                     </div>
 

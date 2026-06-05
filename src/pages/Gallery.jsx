@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight, X } from 'lucide-react';
 import { allDatasets as fallbackDatasets } from '../data/datasetsRegistry';
 
@@ -23,11 +23,20 @@ const sortOptions = [
 ];
 
 const Gallery = () => {
+    const [searchParams] = useSearchParams();
     const [activeCategory, setActiveCategory] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
     const [selectedPriceRange, setSelectedPriceRange] = useState(null);
     const [selectedFormats, setSelectedFormats] = useState([]);
     const [sortBy, setSortBy] = useState('relevant');
+
+    // Sync search query when URL params change (e.g. from navbar search)
+    useEffect(() => {
+        const q = searchParams.get('q');
+        if (q) {
+            setSearchQuery(q);
+        }
+    }, [searchParams]);
 
     // Load instantly from local registry — no Firestore delay
     const datasets = fallbackDatasets;
