@@ -51,7 +51,7 @@ const Hero = () => {
                         Crafting India's Tomorrow:
                     </h2>
                     <h1 className="hero-title mt-0">
-                        Where Every <span className="text-gradient">Dataset Mounts For AI Runs</span>
+                        Where Every <span className="text-gradient">Dataset Inspires Inspiration</span>
                     </h1>
                 </motion.div>
 
