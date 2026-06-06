@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Activity } from 'lucide-react';
-import { DATASET_REGISTRY as FULL_REGISTRY } from '../data/datasetsRegistry';
+import { DATASET_REGISTRY as FULL_REGISTRY } from '../utils/computeHelpers';
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -471,7 +471,7 @@ const DatasetDetail = () => {
         { id: 'cohort', label: 'Default Cohort', icon: Users },
         { id: 'sample', label: 'Data Sample', icon: Eye },
         { id: 'columns', label: 'Column Details', icon: Table },
-        { id: 'delivery', label: 'Delivery Options', icon: Download },
+        { id: 'delivery', label: 'Workspace Specs', icon: Box },
     ];
 
     const totalNulls = MOCK_COLUMNS.reduce((s, c) => s + (c.nulls || 0), 0);
@@ -510,27 +510,27 @@ const DatasetDetail = () => {
                         </div>
 
                         {/* Pricing panel */}
-                        <div className="glass-panel p-6 w-full lg:w-80 shrink-0 lg:-mt-4 lg:sticky lg:top-32 border-purple-500/20">
-                            <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Base Research License</div>
+                        <div className="glass-panel p-6 w-full lg:w-80 shrink-0 lg:-mt-4 lg:sticky lg:top-32 border-purple-500/20 font-sans">
+                            <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Annual Workspace License</div>
                             <div className="flex items-baseline gap-2 mb-1">
-                                <span className="text-4xl font-bold text-primary">
-                                    {typeof dataset.price === 'number' ? `₹${dataset.price.toLocaleString()}` : dataset.price}
+                                <span className="text-3xl font-bold text-primary">
+                                    {typeof dataset.price === 'number' ? `${dataset.price.toLocaleString()} Credits` : dataset.price}
                                 </span>
-                                {typeof dataset.price === 'number' && <span className="text-slate-500 text-sm">/ subset</span>}
+                                {typeof dataset.price === 'number' && <span className="text-slate-500 text-sm">/ year</span>}
                             </div>
                             {defaultCohort && (
-                                <p className="text-xs text-slate-500 mb-4">Default cohort: {defaultCohort.records} records · {defaultCohort.gender.split('—')[0].trim()}</p>
+                                <p className="text-xs text-slate-500 mb-4">Workspace slice: {defaultCohort.records} records · {datasetData.computeCreditRate} credits/min runtime</p>
                             )}
-                            <button onClick={(e) => handleProtectedAction(e, '/customize')} className="w-full btn btn-primary py-3 justify-center mb-3 cursor-pointer text-center block">
-                                Customize Cohort & Buy
+                            <button onClick={(e) => handleProtectedAction(e, '/customize')} className="w-full btn btn-primary py-3 justify-center mb-3 cursor-pointer text-center block font-semibold">
+                                Configure & Launch IDE
                             </button>
                             <button onClick={(e) => handleProtectedAction(e, null)} className="w-full btn btn-outline py-2 text-sm justify-center mb-6 cursor-pointer text-center block">
-                                Request Free Data Sample
+                                Request Trial Sandbox
                             </button>
                             <div className="space-y-3 pt-4 border-t border-glass-border text-sm text-slate-300">
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.records} Records</div>
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.variables} Variables</div>
-                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.formats.join(', ')}</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-blue-400" /> {dataset.records} Patient Records</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-purple-400" /> {datasetData.computeCreditRate} Credits / min runtime</div>
+                                <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-indigo-400" /> Preloaded: {dataset.formats.join(', ')}</div>
                             </div>
                         </div>
                     </div>
@@ -656,6 +656,14 @@ const DatasetDetail = () => {
                 {/* DATA SAMPLE */}
                 {activeTab === 'sample' && (
                     <div className="glass-panel p-8">
+                        {/* Compute to Data sandbox preview banner */}
+                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-start gap-4">
+                            <Info className="text-amber-500 shrink-0 mt-0.5" size={20} />
+                            <div>
+                                <h4 className="font-bold text-amber-400 text-sm">Sandbox Configuration Sample</h4>
+                                <p className="text-xs text-amber-200/80 mt-1">This table shows a 5-row dummy/synthesized sample to help you inspect variables and configure your script syntax. The actual patient database is hosted inside isolated compute nodes and is never exposed or downloadable.</p>
+                            </div>
+                        </div>
                         <div className="flex items-center justify-between mb-6 border-b border-glass-border pb-4">
                             <div>
                                 <h2 className="text-2xl font-bold text-primary">Data Sample</h2>
@@ -740,32 +748,33 @@ const DatasetDetail = () => {
 
                 {/* DELIVERY */}
                 {activeTab === 'delivery' && (
-                    <div className="glass-panel p-8">
-                        <h2 className="text-2xl font-bold text-primary mb-6 border-b border-glass-border pb-4">Delivery Options</h2>
+                    <div className="glass-panel p-8 font-sans">
+                        <h2 className="text-2xl font-bold text-primary mb-6 border-b border-glass-border pb-4">Workspace Environment Specifications</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl flex flex-col items-center text-center hover:border-purple-500/50 transition-colors">
-                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Download size={24} /></div>
-                                <h3 className="font-bold text-primary mb-2">Direct Download</h3>
-                                <p className="text-xs text-slate-400 mb-4">Secure, signed URLs for raw file extraction.</p>
+                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Code2 size={24} className="text-purple-400" /></div>
+                                <h3 className="font-bold text-primary mb-2">Pre-installed Runtimes</h3>
+                                <p className="text-xs text-slate-400 mb-4">Pre-configured Python 3.10 and R kernels with standard clinical analysis packages.</p>
                                 <div className="flex flex-wrap justify-center gap-1 mt-auto">
-                                    {dataset.formats.filter(f => ['CSV', 'Parquet', 'JSON', 'VCF', 'DICOM', 'SQL'].includes(f)).map(f => (
+                                    {['Pandas', 'NumPy', 'Scikit-Learn', 'PyDICOM', 'BioPython', 'SciPy'].map(f => (
                                         <span key={f} className="text-[10px] bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-300">{f}</span>
                                     ))}
                                 </div>
                             </div>
                             <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl flex flex-col items-center text-center hover:border-purple-500/50 transition-colors">
-                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Code2 size={24} /></div>
-                                <h3 className="font-bold text-primary mb-2">REST API Endpoint</h3>
-                                <p className="text-xs text-slate-400 mb-4">Paginated, queryable access via Auratral keys.</p>
+                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Box size={24} className="text-blue-400" /></div>
+                                <h3 className="font-bold text-primary mb-2">Isolated Sandbox Node</h3>
+                                <p className="text-xs text-slate-400 mb-4">Docker-based isolated container with dedicated virtual CPUs and secure RAM allocations.</p>
                                 <div className="flex flex-wrap justify-center gap-1 mt-auto">
-                                    <span className="text-[10px] bg-slate-800 border border-slate-600 px-1.5 py-0.5 rounded text-slate-300">JSON</span>
-                                    {dataset.formats.includes('FHIR R4') && <span className="text-[10px] bg-slate-800 border border-blue-500/30 px-1.5 py-0.5 rounded text-blue-400 font-semibold">FHIR R4</span>}
+                                    <span className="text-[10px] bg-slate-800 border border-blue-500/30 px-1.5 py-0.5 rounded text-blue-400 font-semibold">4 vCPUs</span>
+                                    <span className="text-[10px] bg-slate-800 border border-blue-500/30 px-1.5 py-0.5 rounded text-blue-400 font-semibold">16 GB RAM</span>
+                                    <span className="text-[10px] bg-slate-800 border border-blue-500/30 px-1.5 py-0.5 rounded text-blue-400 font-semibold">10GB SSD</span>
                                 </div>
                             </div>
                             <div className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl flex flex-col items-center text-center hover:border-purple-500/50 transition-colors">
-                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Box size={24} /></div>
-                                <h3 className="font-bold text-primary mb-2">Docker Container</h3>
-                                <p className="text-xs text-slate-400">Pre-loaded in PostgreSQL with Jupyter env.</p>
+                                <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 mb-4 border border-slate-700 shadow-lg"><Activity size={24} className="text-pink-400" /></div>
+                                <h3 className="font-bold text-primary mb-2">High-Performance Clusters</h3>
+                                <p className="text-xs text-slate-400">GPU-accelerated runtimes for deep learning (Imaging) or TPU clusters for genomics pipelines.</p>
                                 <div className="mt-auto pt-4 text-[10px] font-bold text-purple-400 uppercase tracking-widest">Enterprise Tier</div>
                             </div>
                         </div>

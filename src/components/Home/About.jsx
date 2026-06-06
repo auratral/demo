@@ -29,8 +29,8 @@ const About = () => {
         {
             icon: Cpu,
             step: '04',
-            title: 'Compliance & Delivery',
-            desc: 'We bundle datasets under strict governance (DPDP Act, HIPAA, and GDPR) ready for instant integration in formats like FHIR, CSV, and JSON.',
+            title: 'Secure Custody Compute',
+            desc: 'We mount datasets under strict governance (DPDP Act, HIPAA, and GDPR) inside network-isolated runtimes, allowing code execution without raw database downloads.',
             color: 'amber',
         },
     ];
@@ -78,10 +78,10 @@ const About = () => {
                             Who We Are
                         </span>
                         <h2 className="text-3xl md:text-4xl lg:text-[2.5rem] font-black text-primary leading-tight mt-6 mb-4">
-                            Pioneering India’s <span className="text-gradient">Data-as-a-Service</span> Platform.
+                            Pioneering India’s <span className="text-gradient">Compute-to-Data</span> Platform.
                         </h2>
                         <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-                            Auratral is transforming how researchers, builders, and clinical teams access and leverage high-quality, research-grade datasets.
+                            Auratral is transforming how researchers, builders, and clinical teams analyze and leverage high-quality, research-grade datasets without security risks.
                         </p>
                     </motion.div>
 
@@ -94,10 +94,10 @@ const About = () => {
                         transition={{ duration: 0.6, delay: 0.15 }}
                     >
                         <p className="border-l-2 border-blue-500/40 pl-4 font-medium text-slate-200">
-                            We do not simply collect and sell datasets. As a dedicated DaaS platform, we acquire, clean, and enrich clinical data, delivering AI-ready data solutions designed to power next-generation healthtech.
+                            We do not transfer or sell datasets. As a dedicated Compute-to-Data platform, we host secure clinical repositories in isolated, sandboxed nodes. Researchers run code on the hosted dataset inside secure containers, exporting only the trained models, weights, and evaluation reports.
                         </p>
                         <p className="text-slate-400">
-                            By acting as the processing and engineering layer between complex healthcare systems and modern data teams, Auratral strips away the complexity of data cleaning, annotation, compliance governance, and structural integration. Startups, laboratories, and large enterprises can now access high-fidelity data feeds within minutes rather than months.
+                            By acting as the secure processing and computing layer between complex clinical systems and modern AI teams, Auratral completely eliminates data custody and leakage risks. Startups, labs, and enterprise research teams can now run analysis and train models on high-fidelity clinical records in minutes rather than spending months navigating complex legal data transfers.
                         </p>
                     </motion.div>
                 </div>
@@ -111,7 +111,7 @@ const About = () => {
                         viewport={{ once: true }}
                     >
                         <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">The Auratral Advantage</span>
-                        <h3 className="text-2xl font-bold text-primary mt-2">How We Enhance & Engineer Data</h3>
+                        <h3 className="text-2xl font-bold text-primary mt-2">How We Secure & Host Clinical Data</h3>
                     </motion.div>
 
                     <motion.div
@@ -167,10 +167,10 @@ const About = () => {
                             Our Mission
                         </span>
                         <h3 className="text-2xl md:text-3xl font-extrabold text-primary leading-snug mt-6 mb-6">
-                            Building a centralized, secure, and compliant data infrastructure where organizations can seamlessly access ethically governed, high-quality data.
+                            Building a centralized, secure, and compliant compute infrastructure where organizations can seamlessly run code on ethically governed, high-quality data.
                         </h3>
                         <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                            Auratral is committed to fueling next-generation breakthroughs across clinical AI, healthcare analytics, and patient outcomes by making robust datasets accessible, compliant, and ready to deploy.
+                            Auratral is committed to fueling next-generation breakthroughs across clinical AI, healthcare analytics, and patient outcomes by making robust datasets computable, compliant, and ready to analyze.
                         </p>
 
                         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

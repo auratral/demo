@@ -13,22 +13,22 @@ import {
 const TIERS = [
     {
         icon: GraduationCap,
-        name: 'Students / Research Scholars',
+        name: 'Starter Research Pack',
         emoji: '🎓',
         target: 'MSc/PhD students & independent researchers',
-        commitment: 'Pay per dataset — no subscription',
-        platformFee: '₹0',
+        commitment: 'Pay per credit pack — no commitment',
+        platformFee: '500 Credits',
         color: 'blue',
         highlight: false,
         features: [
-            { text: 'Single subset purchase', ok: true },
-            { text: 'Academic Non-Commercial license', ok: true },
-            { text: 'Up to 10% off with .edu email', ok: true },
-            { text: 'Community forum support', ok: true },
-            { text: 'Compliance docs included', ok: true },
-            { text: 'API access', ok: false },
-            { text: 'Docker delivery', ok: false },
-            { text: 'Custom cohort builder', ok: false },
+            { text: '500 Compute Credits included', ok: true },
+            { text: 'Exchange rate: 1 credit = ₹10', ok: true },
+            { text: 'Access to all hosted workspaces', ok: true },
+            { text: 'Interactive Jupyter IDE sandbox', ok: true },
+            { text: 'Download model weights & evaluation reports', ok: true },
+            { text: 'Dedicated GPU nodes', ok: false },
+            { text: 'Persistent sandbox storage', ok: false },
+            { text: 'Custom pipelines configuration', ok: false },
         ],
         cta: 'Browse Datasets',
         ctaLink: '/gallery',
@@ -36,46 +36,46 @@ const TIERS = [
     },
     {
         icon: Building2,
-        name: 'Universities',
+        name: 'Researcher Pack',
         emoji: '🏫',
-        target: 'Universities, research institutes & colleges',
-        commitment: 'Annual subscription — full catalog access',
-        platformFee: '₹0',
+        target: 'Active clinical labs & research institutions',
+        commitment: 'Standard credit allocation package',
+        platformFee: '1,500 Credits',
         color: 'purple',
         highlight: true,
-        badge: 'Most Popular',
+        badge: 'Best Value',
         features: [
-            { text: 'Multi-dataset catalog access (yearly)', ok: true },
-            { text: 'Academic Non-Commercial + Research & Publication licenses', ok: true },
-            { text: 'IRB-compatible DUA included', ok: true },
-            { text: 'REST API + FHIR R4 access', ok: true },
-            { text: 'Docker delivery', ok: true },
-            { text: 'Custom cohort builder (paid add-on)', ok: true },
-            { text: 'Email support (48h SLA)', ok: true },
-            { text: 'Dedicated CSM', ok: false },
+            { text: '1,500 Compute Credits included', ok: true },
+            { text: 'Exchange rate: 1 credit = ₹10', ok: true },
+            { text: 'Access to all hosted workspaces', ok: true },
+            { text: 'Jupyter & RStudio IDE environment', ok: true },
+            { text: 'Download weights, predictions & metrics', ok: true },
+            { text: 'GPU runtimes (5 credits/min burn rate)', ok: true },
+            { text: 'Persistent storage (paid add-on)', ok: true },
+            { text: 'Dedicated support (24h SLA)', ok: true },
         ],
-        cta: 'Contact Us',
+        cta: 'Purchase Credits',
         ctaLink: '#enterprise-form',
         ctaVariant: 'primary',
     },
     {
         icon: Building,
-        name: 'Enterprise',
+        name: 'Enterprise Cluster Pack',
         emoji: '🏢',
-        target: 'Health-tech firms, pharma, AI companies & insurers',
-        commitment: 'Annual contract — bespoke pricing',
-        platformFee: 'Custom',
+        target: 'Pharma companies, health-tech labs & AI firms',
+        commitment: 'Bespoke high-volume computation',
+        platformFee: '5,000 Credits',
         color: 'indigo',
         highlight: false,
         features: [
-            { text: 'Unlimited catalog access', ok: true },
-            { text: 'All license types including AI Training & OEM', ok: true },
-            { text: 'Full DUA + BAA + MSA', ok: true },
-            { text: 'Priority API SLA (99.5% uptime)', ok: true },
-            { text: 'Docker + custom ingestion pipeline', ok: true },
-            { text: 'Custom cohort builder included', ok: true },
+            { text: '5,000 Compute Credits included', ok: true },
+            { text: 'Exchange rate: 1 credit = ₹10', ok: true },
+            { text: 'GPU/TPU runtimes (8 credits/min burn rate)', ok: true },
+            { text: 'Persistent container storage included', ok: true },
+            { text: 'Download all model formats & custom metrics', ok: true },
+            { text: 'Exclusive Host Custody options', ok: true },
+            { text: 'Custom pipeline setups (R/Julia/C++)', ok: true },
             { text: 'Dedicated Data Success Manager', ok: true },
-            { text: 'Exclusive license option available', ok: true },
         ],
         cta: 'Contact Enterprise',
         ctaLink: '#enterprise-form',
@@ -84,28 +84,28 @@ const TIERS = [
 ];
 
 const DATASET_PRICES = [
-    { category: 'EHR / ICU', icon: '🏥', price: '₹12,367', includes: 'De-identified cohort, 1 format, 1-yr license', exclusive: '₹45,00,000' },
-    { category: 'Imaging', icon: '🔬', price: '₹24,817', includes: 'DICOM + JSON, bounding boxes, radiologist labels', exclusive: '₹60,00,000' },
-    { category: 'Pharma / FAERS', icon: '💊', price: '₹49,717', includes: 'Full curated extract, quarterly refresh', exclusive: '₹72,00,000' },
-    { category: 'Genomics', icon: '🧬', price: 'Custom Quote', includes: 'VCF + clinical linkage, enterprise DUA required', exclusive: '₹90,00,000' },
-    { category: 'Mental Health', icon: '🧠', price: '₹16,517', includes: 'Survey corpus, item-level data', exclusive: '₹37,50,000' },
-    { category: 'Real-World / Trials', icon: '📊', price: '₹33,117', includes: 'Longitudinal cohort, semi-annual refresh', exclusive: '₹52,50,000' },
+    { category: 'Mental Health', icon: '🧠', price: '1,652 Credits/yr', rate: '1 credit/min', includes: 'Survey corpus, standard Python CPU sandbox', exclusive: '3,75,000 Credits/yr' },
+    { category: 'EHR / ICU', icon: '🏥', price: '1,237 Credits/yr', rate: '2 credits/min', includes: 'De-identified clinical data, CPU + High memory runtime', exclusive: '4,50,000 Credits/yr' },
+    { category: 'Real-World / Trials', icon: '📊', price: '3,312 Credits/yr', rate: '3 credits/min', includes: 'Longitudinal clinical trials, CPU High memory sandbox', exclusive: '5,25,000 Credits/yr' },
+    { category: 'Pharma / FAERS', icon: '💊', price: '4,972 Credits/yr', rate: '3 credits/min', includes: 'FDA ADR adverse events, Pandas + SQL analytics', exclusive: '7,20,000 Credits/yr' },
+    { category: 'Imaging', icon: '🔬', price: '2,482 Credits/yr', rate: '5 credits/min', includes: 'DICOM Radiology images, PyTorch GPU runtime', exclusive: '6,00,000 Credits/yr' },
+    { category: 'Genomics', icon: '🧬', price: 'Custom Quote', rate: '8 credits/min', includes: 'Whole genome sequencing, BioPython TPU cluster', exclusive: '9,00,000 Credits/yr' },
 ];
 
 const UNIVERSITY_BANDS = [
-    { band: 'Small', size: '< 5,000 students', price: '₹3,60,000', datasets: 'Up to 3 datasets' },
-    { band: 'Medium', size: '5,000 – 20,000 students', price: '₹7,50,000', datasets: 'Up to 8 datasets' },
-    { band: 'Large', size: '> 20,000 students', price: '₹13,50,000', datasets: 'Full catalog access' },
+    { band: 'Small Band', size: '< 5,000 students', price: '₹3,60,000/yr', datasets: '36,000 Compute Credits pool / yr' },
+    { band: 'Medium Band', size: '5,000 – 20,000 students', price: '₹7,50,000/yr', datasets: '75,000 Compute Credits pool / yr' },
+    { band: 'Large Band', size: '> 20,000 students', price: '₹13,50,000/yr', datasets: '1,35,000 Compute Credits pool / yr' },
 ];
 
 const ADDONS = [
-    { icon: Users, name: 'Custom Cohort Builder', desc: 'Filter by demographics, diagnosis, date range — receive only the exact slice you need', price: '₹8,000 – ₹25,000', note: 'Based on complexity' },
-    { icon: FileText, name: 'Format Conversion', desc: 'Receive an additional file format beyond your base (e.g., FHIR R4 on top of CSV)', price: '+₹3,500', note: 'Per format' },
-    { icon: RefreshCw, name: 'Longitudinal Extension', desc: 'Extend the temporal coverage window of your dataset beyond the base period', price: '+₹14,000', note: 'Per year added' },
-    { icon: Zap, name: 'API Access Pack', desc: 'Live REST endpoint + FHIR streaming to query data programmatically without downloading files', price: '+₹9,999', note: 'Per dataset' },
-    { icon: Database, name: 'Docker Bundle', desc: 'Dataset pre-loaded in a PostgreSQL DB + Jupyter notebook environment — zero setup required', price: '+₹14,999', note: 'One-time' },
-    { icon: Star, name: 'Priority Refresh', desc: 'Receive updated data ahead of the standard release cycle — critical for active pharmacovigilance', price: '+₹18,000', note: 'Per refresh cycle' },
-    { icon: ShieldCheck, name: 'IRB Pack', desc: 'Formally executed IRB-compatible Data Use Agreement, delivered within 5 business days', price: '+₹12,000', note: 'One-time' },
+    { icon: Users, name: 'Custom Sandbox Filter', desc: 'Select specific clinical attributes or cohort demographics loaded into your environment', price: '800 – 2,500 Credits', note: 'One-time' },
+    { icon: FileText, name: 'Persistent Storage', desc: 'Persist your custom Python scripts, model binaries, and configurations between sandbox runs', price: '500 Credits/yr', note: 'Per workspace' },
+    { icon: RefreshCw, name: 'Dedicated GPU Node', desc: 'Accelerate training runs with dedicated high-performance CUDA computing resources', price: '+5 Credits/min', note: 'Active runtime only' },
+    { icon: Zap, name: 'External Output Audit', desc: 'Pre-clear model files and export outputs via human-in-the-loop clinical auditing in 12h', price: '1,200 Credits', note: 'Per audit request' },
+    { icon: Database, name: 'Custom Library Setup', desc: 'Request custom R packages, Julia installations, or specific bioinformatics libraries', price: '1,500 Credits', note: 'One-time' },
+    { icon: Star, name: 'Provider Sync Service', desc: 'Synchronize your models with newly arrived clinical records on the provider servers automatically', price: '1,800 Credits/yr', note: 'Per workspace' },
+    { icon: ShieldCheck, name: 'IRB Protocol Pack', desc: 'Generate a signed IRB-compatible protocol and DUA digest document for audit compliance', price: '500 Credits', note: 'One-time' },
 ];
 
 const NON_EXCLUSIVE_LICENSES = [
@@ -117,12 +117,12 @@ const NON_EXCLUSIVE_LICENSES = [
 
 
 const EXCLUSIVE_PRICES = [
-    { dataset: 'EHR / ICU', icon: '🏥', estAnnual: '₹6,00,000', period: '5 yrs', exclusivePrice: '₹45,00,000' },
-    { dataset: 'Imaging', icon: '🔬', estAnnual: '₹8,00,000', period: '5 yrs', exclusivePrice: '₹60,00,000' },
-    { dataset: 'Pharma / FAERS', icon: '💊', estAnnual: '₹12,00,000', period: '4 yrs', exclusivePrice: '₹72,00,000' },
-    { dataset: 'Genomics', icon: '🧬', estAnnual: '₹10,00,000', period: '6 yrs', exclusivePrice: '₹90,00,000' },
-    { dataset: 'Mental Health', icon: '🧠', estAnnual: '₹5,00,000', period: '5 yrs', exclusivePrice: '₹37,50,000' },
-    { dataset: 'Real-World / Trials', icon: '📊', estAnnual: '₹7,00,000', period: '5 yrs', exclusivePrice: '₹52,50,000' },
+    { dataset: 'EHR / ICU', icon: '🏥', estAnnual: '60,000 Credits', period: '5 yrs', exclusivePrice: '4,50,000 Credits/yr' },
+    { dataset: 'Imaging', icon: '🔬', estAnnual: '80,000 Credits', period: '5 yrs', exclusivePrice: '6,00,000 Credits/yr' },
+    { dataset: 'Pharma / FAERS', icon: '💊', estAnnual: '1,20,000 Credits', period: '4 yrs', exclusivePrice: '7,20,000 Credits/yr' },
+    { dataset: 'Genomics', icon: '🧬', estAnnual: '1,00,000 Credits', period: '6 yrs', exclusivePrice: '9,00,000 Credits/yr' },
+    { dataset: 'Mental Health', icon: '🧠', estAnnual: '50,000 Credits', period: '5 yrs', exclusivePrice: '3,75,000 Credits/yr' },
+    { dataset: 'Real-World / Trials', icon: '📊', estAnnual: '70,000 Credits', period: '5 yrs', exclusivePrice: '5,25,000 Credits/yr' },
 ];
 
 const FAQS = [
@@ -313,7 +313,7 @@ const Pricing = () => {
                                 </div>
 
                                 <div className="mb-6 pb-6 border-b border-glass-border">
-                                    <div className="text-xs text-slate-500 mb-1">Platform Fee</div>
+                                    <div className="text-xs text-slate-500 mb-1">Pack Price (₹10 = 1 Cr)</div>
                                     <div className="text-2xl font-bold text-primary">{tier.platformFee}</div>
                                 </div>
 
@@ -340,7 +340,7 @@ const Pricing = () => {
 
             {/* ── SECTION 2: PER-DATASET PRICING ── */}
             <div className="container mx-auto px-8 mb-28">
-                <SectionHeading tag="💰 Base Prices" title="Per-Dataset Pricing" sub="Base prices are for the Academic Non-Commercial license. License multipliers apply at checkout for commercial use." />
+                <SectionHeading tag="💰 Compute Licensing" title="Workspace Activation & Runtime Rates" sub="Workspace activation fees cover a 1-year license period. Execution time consumes compute credits dynamically." />
                 <div className="max-w-5xl mx-auto">
                     <div className="glass-panel overflow-hidden">
                         <table className="w-full">
@@ -348,8 +348,9 @@ const Pricing = () => {
                                 <tr className="bg-slate-800/60 border-b border-glass-border">
                                     <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Category</th>
                                     <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">What's included</th>
-                                    <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">Base Price</th>
-                                    <th className="text-right px-6 py-4 text-sm font-semibold text-gradient">Exclusive Price</th>
+                                    <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">Annual Activation Fee</th>
+                                    <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">Runtime Rate</th>
+                                    <th className="text-right px-6 py-4 text-sm font-semibold text-gradient">Exclusive Host Custody</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -362,19 +363,21 @@ const Pricing = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-sm text-slate-400 max-w-xs">{d.includes}</td>
-                                        <td className="px-6 py-5 text-right">
-                                            <span className="text-lg font-bold text-primary">{d.price}</span>
+                                        <td className="px-6 py-5 text-right font-bold text-primary">
+                                            {d.price}
                                         </td>
-                                        <td className="px-6 py-5 text-right">
-                                            <span className="text-sm font-bold text-gradient">{d.exclusive}</span>
+                                        <td className="px-6 py-5 text-right text-sm font-semibold text-indigo-400">
+                                            {d.rate}
+                                        </td>
+                                        <td className="px-6 py-5 text-right font-bold text-gradient">
+                                            {d.exclusive}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                         <div className="px-6 py-4 bg-slate-900/40 text-xs text-slate-500 border-t border-slate-800">
-                            * Commercial use multiplies base price by 1.3× to 2.5× depending on license type selected at checkout.
-                            Exclusive prices reflect full dataset withdrawal from catalog. Genomics base price is custom-quoted.
+                            * Workspace activation grants a 1-year sandboxed license. Commercial use multiplies annual activation fees by 1.3× to 2.5× depending on license type. Genomics activation is custom-quoted.
                         </div>
                     </div>
                 </div>

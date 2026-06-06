@@ -7,16 +7,16 @@ import './FeaturedDatasets.css';
 const datasets = [
     {
         id: 'AUR-EHR-00087',
-        name: 'Longitudinal ICU Encounters â€” Critical Care Dataset',
+        name: 'Longitudinal ICU Encounters — Critical Care Dataset',
         category: 'EHR',
         subCategory: 'ICU & Critical Care',
         records: '186,000',
-        formats: ['CSV', 'Parquet', 'FHIR'],
+        formats: ['Python', 'R', 'Jupyter'],
         compliance: ['HIPAA Safe Harbor', 'GDPR-Ready', 'DPDP-Ready'],
         rating: 4.9,
         reviews: 124,
-        startingPrice: '12367',
-        delivery: ['api', 'docker'],
+        activationCredits: 1237,
+        computeRate: 2,
     },
     {
         id: 'AUR-IMG-00143',
@@ -24,12 +24,12 @@ const datasets = [
         category: 'Imaging',
         subCategory: 'Radiology',
         records: '45,200',
-        formats: ['DICOM', 'JSON'],
+        formats: ['PyTorch', 'TensorFlow', 'PACS'],
         compliance: ['HIPAA Safe Harbor', 'DPDP Compliant'],
         rating: 4.8,
         reviews: 89,
-        startingPrice: '24817',
-        delivery: ['download'],
+        activationCredits: 2482,
+        computeRate: 5,
     },
     {
         id: 'AUR-PVM-00021',
@@ -37,12 +37,12 @@ const datasets = [
         category: 'Pharmacovigilance',
         subCategory: 'Adverse Drug Reactions',
         records: '2.4M',
-        formats: ['CSV', 'Parquet', 'SQL'],
+        formats: ['Pandas', 'SQL', 'Jupyter'],
         compliance: ['Aggregated', 'Open License'],
         rating: 4.7,
         reviews: 215,
-        startingPrice: '49717',
-        delivery: ['api', 'docker', 'download'],
+        activationCredits: 4972,
+        computeRate: 3,
     },
     {
         id: 'AUR-GEN-00092',
@@ -50,12 +50,12 @@ const datasets = [
         category: 'Genomics',
         subCategory: 'Whole Genome Sequencing',
         records: '12,500',
-        formats: ['VCF', 'CSV', 'JSON'],
+        formats: ['BioPython', 'R-Bioc', 'TPU'],
         compliance: ['HIPAA Safe Harbor', 'DPDP Compliant', 'IRB DUA'],
         rating: 5.0,
         reviews: 42,
-        startingPrice: 'Custom',
-        delivery: ['docker'],
+        activationCredits: 9000,
+        computeRate: 8,
     }
 ];
 
@@ -98,7 +98,7 @@ const FeaturedDatasets = () => {
                     className="flex justify-between items-end mb-8"
                 >
                     <div>
-                        <h2 className="text-3xl font-bold mb-2 text-primary">Featured Datasets</h2>
+                        <h2 className="text-3xl font-bold mb-2 text-primary">Featured Workspaces</h2>
                         <p className="text-secondary">Highly-rated datasets recently cleared by our clinical compliance team. <span className="text-purple-400 font-medium">Swipe to explore.</span></p>
                     </div>
                     <Link to="/gallery" className="btn btn-outline hidden md:inline-flex z-10">View All</Link>
@@ -167,17 +167,18 @@ const FeaturedDatasets = () => {
                                     </div>
                                 </div>
 
-                                <div className="dataset-footer mt-auto pt-4 border-t border-glass-border flex items-center justify-between w-full relative z-20">
+                                <div className="dataset-footer mt-auto pt-4 border-t border-glass-border flex items-center justify-between w-full relative z-20 font-sans">
                                     <div>
-                                        <div className="text-xs text-slate-400 mb-1">Starting from</div>
-                                        <div className="font-bold text-lg text-primary">
-                                            {dataset.startingPrice === 'Custom' ? 'Enterprise Quote' : `₹${Number(dataset.startingPrice).toLocaleString()}`}
+                                        <div className="text-xs text-slate-400 mb-1">Activation Fee</div>
+                                        <div className="font-bold text-base text-primary">
+                                            {dataset.activationCredits === 9000 ? 'Custom Quote' : `${dataset.activationCredits.toLocaleString()} Credits/yr`}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        {dataset.delivery.includes('download') && <span title="Direct Download" className="delivery-icon"><Download size={16} /></span>}
-                                        {dataset.delivery.includes('api') && <span title="API Access" className="delivery-icon"><Code2 size={16} /></span>}
-                                        {dataset.delivery.includes('docker') && <span title="Docker Container" className="delivery-icon"><Box size={16} /></span>}
+                                    <div className="text-right">
+                                        <div className="text-[10px] text-slate-500 mb-0.5">Runtime Rate</div>
+                                        <div className="text-xs font-semibold text-purple-400">
+                                            {dataset.computeRate} credits/min
+                                        </div>
                                     </div>
                                 </div>
 

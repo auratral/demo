@@ -5,23 +5,23 @@ import { motion } from 'framer-motion';
 const steps = [
     {
         icon: Search,
-        title: '1. Browse or Request',
-        desc: 'Explore the Healthcare Dataset Gallery or submit a Custom Data Request for specific clinical cohorts.',
+        title: '1. Browse Hosted Datasets',
+        desc: 'Explore the Secure Healthcare Gallery of EHR ICU logs, clinical notes, genomics, and medical imaging DICOMs.',
     },
     {
         icon: Settings2,
-        title: '2. Customize Cohort',
-        desc: 'Select record volume, clinical attributes, demographic parameters, and preferred license type.',
+        title: '2. Configure Sandbox',
+        desc: 'Select demographic cohort filters and define compute resources (CPU vs GPU nodes) for your workspace.',
     },
     {
         icon: FileSignature,
-        title: '3. Legal Agreement',
-        desc: 'Review and accept the 12-condition legal agreement strictly covering NDA, HIPAA, DPDP Act, and ethical use.',
+        title: '3. Access Approval',
+        desc: 'Review IRB/IEC ethics declarations and sign the Compute-to-Data security covenant covering zero-leak usage.',
     },
     {
         icon: Download,
-        title: '4. Instant Access',
-        desc: 'Deploy data seamlessly via secure Direct Download, REST API endpoints, or Docker containers.',
+        title: '4. Run Code & Export',
+        desc: 'Execute code inside isolated Docker runtimes. Download trained models, weight binaries, and logs (raw data remains locked).',
     }
 ];
 
@@ -58,7 +58,7 @@ const HowItWorks = () => {
                 >
                     <h2 className="text-3xl font-bold mb-4 text-primary">How Auratral Works</h2>
                     <p className="text-secondary max-w-2xl mx-auto">
-                        A streamlined, fully compliant process to provision premium medical data for your organization in under 5 minutes.
+                        A streamlined, fully compliant process to launch isolated computing sandboxes and execute clinical AI research.
                     </p>
                 </motion.div>
 

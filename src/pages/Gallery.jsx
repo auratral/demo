@@ -1,23 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Database, ShieldCheck, Download, Code2, Box, Star, ChevronDown, Activity, ArrowRight, X } from 'lucide-react';
-import { allDatasets as fallbackDatasets } from '../data/datasetsRegistry';
+import { allDatasets as fallbackDatasets } from '../utils/computeHelpers';
 
 const categories = ['All', 'EHR', 'Imaging', 'Pharma', 'Genomics', 'Mental Health', 'Trials'];
 
 const priceRanges = [
-    { label: 'Under ₹15,000', min: 0, max: 15000 },
-    { label: '₹15,000 – ₹25,000', min: 15000, max: 25000 },
-    { label: '₹25,000 – ₹40,000', min: 25000, max: 40000 },
-    { label: 'Above ₹40,000', min: 40000, max: Infinity },
+    { label: 'Under 1,500 Credits', min: 0, max: 1500 },
+    { label: '1,500 – 2,500 Credits', min: 1500, max: 2500 },
+    { label: '2,500 – 4,000 Credits', min: 2500, max: 4000 },
+    { label: 'Above 4,000 Credits', min: 4000, max: Infinity },
 ];
 
-const formatOptions = ['JSON', 'CSV', 'Parquet', 'FHIR R4', 'DICOM', 'VCF', 'SQL'];
+const formatOptions = ['Jupyter', 'Python', 'R', 'PyTorch', 'TensorFlow', 'PACS', 'SQL'];
 
 const sortOptions = [
     { label: 'Most Relevant', key: 'relevant' },
-    { label: 'Price: Low to High', key: 'price_asc' },
-    { label: 'Price: High to Low', key: 'price_desc' },
+    { label: 'Credits: Low to High', key: 'price_asc' },
+    { label: 'Credits: High to Low', key: 'price_desc' },
     { label: 'Highest Rated', key: 'rating' },
     { label: 'Record Count', key: 'records' },
 ];
@@ -114,10 +114,10 @@ const Gallery = () => {
                     <Activity size={14} className="text-blue-400" /> Live Data Network
                 </div>
                 <h1 className="text-4xl md:text-6xl font-extrabold text-primary mb-6 tracking-tight leading-tight">
-                    Discover <span className="text-gradient">Premium Healthcare Data</span>
+                    Discover <span className="text-gradient">Secure Compute Workspaces</span>
                 </h1>
                 <p className="text-lg text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto">
-                    Browse our catalog of highly-curated, de-identified medical datasets. Filter by clinical domain, data modality, or compliance standard to find the exact cohort for your research.
+                    Browse our catalog of hosted clinical datasets. Configure and launch sandboxed workspaces loaded with pre-installed analysis libraries to run AI models directly where the data resides.
                 </p>
 
                 {/* Centered Search Bar */}
@@ -225,7 +225,7 @@ const Gallery = () => {
                         {/* Price Range Filter */}
                         <div className="mb-8">
                             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                                Price Range <ChevronDown size={14} />
+                                Activation Credits <ChevronDown size={14} />
                             </h3>
                             <div className="space-y-3">
                                 {priceRanges.map((range, idx) => (
@@ -248,7 +248,7 @@ const Gallery = () => {
                         {/* Export Format Filter */}
                         <div className="mb-4">
                             <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                                Export Format <ChevronDown size={14} />
+                                Compute Environment <ChevronDown size={14} />
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {formatOptions.map(fmt => (
@@ -332,14 +332,17 @@ const Gallery = () => {
                                         </div>
                                         <div className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-6">Auratral Quality Score</div>
 
-                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Starting From</div>
-                                        <div className="text-3xl font-bold text-primary">
-                                            {dataset.price === 'Custom' ? 'Custom' : `₹${dataset.price.toLocaleString()}`}
+                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Activation Fee</div>
+                                        <div className="text-2xl font-bold text-primary">
+                                            {dataset.price >= 9000 ? 'Custom Quote' : `${dataset.price.toLocaleString()} Credits/yr`}
+                                        </div>
+                                        <div className="text-[10px] text-purple-400 mt-2 font-mono font-bold">
+                                            Rate: {dataset.computeCreditRate} credits/min
                                         </div>
                                     </div>
 
                                     <Link to={`/dataset/${dataset.id}`} className="btn btn-primary w-full justify-center py-3 text-sm shadow-lg shadow-blue-500/20 group-hover:scale-[1.02] transition-transform">
-                                        View Details
+                                        Explore Workspace
                                     </Link>
                                 </div>
 

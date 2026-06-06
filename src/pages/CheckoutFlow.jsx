@@ -1,133 +1,118 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, Lock, UploadCloud, Users, CreditCard, AlertTriangle, Info, FileText, ClipboardList, Clock, Activity } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ShieldCheck, Lock, AlertTriangle, Info, FileText, ClipboardList, Clock, Activity, Cpu } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-import { DATASET_REGISTRY as fallbackRegistry } from '../data/datasetsRegistry';
+import { DATASET_REGISTRY as fallbackRegistry } from '../utils/computeHelpers';
 
 export const Customize = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const datasetId = location.state?.datasetId || 'AUR-EHR-101';
 
-    // Instant local lookup — no Firestore delay
+    // Instant local lookup
     const dataset = fallbackRegistry[datasetId]
         || Object.values(fallbackRegistry).find(d => d.id?.toLowerCase() === datasetId?.toLowerCase())
         || fallbackRegistry[Object.keys(fallbackRegistry)[0]];
 
-    // State for all form selections
-    const [format, setFormat] = useState('');
-    const [records, setRecords] = useState(50);
+    // State for compute environment selections
+    const [envType, setEnvType] = useState('Python 3.10 (SciPy/Pandas)');
+    const [instanceTier, setInstanceTier] = useState('Standard CPU'); // 'Standard CPU' | 'High-Memory CPU' | 'GPU Cluster'
+    const [persistentStorage, setPersistentStorage] = useState(false);
+    const [irbPack, setIrbPack] = useState(false);
+    const [supportSla, setSupportSla] = useState(false);
+
+    // Demographic cohort mounting filters
     const [districts, setDistricts] = useState('All Districts');
     const [region, setRegion] = useState('All Regions');
     const [ageMin, setAgeMin] = useState(18);
     const [ageMax, setAgeMax] = useState(85);
     const [gender, setGender] = useState('Balanced (50-50)');
-    const [valReport, setValReport] = useState(false);
-    const [anonCert, setAnonCert] = useState(false);
-    const [apiAccess, setApiAccess] = useState(false);
-    const [dataUpdates, setDataUpdates] = useState(false);
 
-    // Set default format once dataset loads
-    useEffect(() => {
-        if (dataset && dataset.formats && dataset.formats.length > 0) {
-            setFormat(dataset.formats[0]);
-        }
-    }, [dataset]);
-
-
-    // Pricing calculation
-    const basePrice = dataset?.price || 16500;
-    const additionalServicesPrice = (apiAccess ? 4140 : 0) + (dataUpdates ? 8290 : 0);
+    // Pricing calculation in Credits
+    const basePrice = dataset?.price || 1237;
+    const tierCost = instanceTier === 'High-Memory CPU' ? 200 : instanceTier === 'GPU Cluster' ? 1500 : 0;
+    const storageCost = persistentStorage ? 500 : 0;
+    const irbCost = irbPack ? 500 : 0;
+    const slaCost = supportSla ? 300 : 0;
+    const additionalServicesPrice = tierCost + storageCost + irbCost + slaCost;
     const total = basePrice + additionalServicesPrice;
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
             <div className="container mx-auto px-8 max-w-6xl">
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
                     {/* Left Column: Configuration */}
                     <div className="lg:col-span-2 space-y-10">
                         <div>
-                            <h1 className="text-3xl font-bold text-primary mb-2">Dataset Configuration</h1>
-                            <p className="text-secondary pb-6 border-b border-glass-border">Customize your {dataset?.name} cohort parameters</p>
+                            <h1 className="text-3xl font-bold text-primary mb-2">Sandbox Configuration</h1>
+                            <p className="text-secondary pb-6 border-b border-glass-border">Configure compute runtimes and cohort filters for {dataset?.name}</p>
                         </div>
 
-                        {/* Format */}
+                        {/* Runtimes */}
                         <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-primary">Select Format</h3>
+                            <h3 className="text-xl font-bold text-primary">Select Compute Environment</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {(dataset?.formats || ['CSV', 'JSON', 'Excel']).map(fmtId => {
-                                    const desc = fmtId === 'CSV' ? 'Comma-separated values' :
-                                                 fmtId === 'JSON' ? 'JavaScript Object Notation' :
-                                                 fmtId === 'FHIR R4' ? 'HL7 FHIR clinical format' :
-                                                 fmtId === 'VCF' ? 'Variant Call Format (Genomics)' :
-                                                 fmtId === 'DICOM' ? 'DICOM Metadata & Fields' :
-                                                 fmtId === 'Parquet' ? 'Apache Parquet column-oriented' :
-                                                 fmtId === 'SQL' ? 'SQL Insert Queries' : 'Structured data format';
-                                    return (
-                                        <div
-                                            key={fmtId}
-                                            onClick={() => setFormat(fmtId)}
-                                            className={`p-4 rounded-xl border cursor-pointer transition-all ${format === fmtId ? 'bg-blue-500/20 border-blue-500' : 'bg-slate-800/50 border-slate-700 hover:border-slate-500'}`}
-                                        >
-                                            <div className={`font-bold ${format === fmtId ? 'text-blue-400' : 'text-primary'}`}>{fmtId}</div>
-                                            <div className="text-xs text-slate-400 mt-1">{desc}</div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Number of Records */}
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-end">
-                                <h3 className="text-xl font-bold text-primary">Number of Records</h3>
-                                <div className="text-2xl font-bold text-blue-400">{records}</div>
-                            </div>
-                            <input
-                                type="range"
-                                min="10"
-                                max="50"
-                                value={records}
-                                onChange={(e) => setRecords(Number(e.target.value))}
-                                className="w-full accent-blue-500"
-                            />
-                            <div className="flex justify-between text-xs text-slate-500">
-                                <span>Min: 10 records</span>
-                                <span>Max: 50 records</span>
-                            </div>
-                            <div className="flex gap-3 pt-2">
-                                {[10, 25, 50].map(val => (
-                                    <button
-                                        key={val}
-                                        onClick={() => setRecords(val)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${records === val ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300'}`}
+                                {[
+                                    { id: 'Python 3.10 (SciPy/Pandas)', desc: 'Preloaded with NumPy, Pandas, Scikit-Learn, SciPy' },
+                                    { id: 'R 4.2 (Bioconductor)', desc: 'Clinical stats, Bioconductor packages, ggplot2' },
+                                    { id: 'PyTorch 2.1 (CUDA)', desc: 'Deep learning libraries, PyTorch, torchvision, CUDA' }
+                                ].map(env => (
+                                    <div
+                                        key={env.id}
+                                        onClick={() => setEnvType(env.id)}
+                                        className={`p-4 rounded-xl border cursor-pointer transition-all ${envType === env.id ? 'bg-purple-500/20 border-purple-500' : 'bg-slate-800/50 border-slate-700 hover:border-slate-500'}`}
                                     >
-                                        {val === 50 ? 'All (50)' : `${val} Records`}
-                                    </button>
+                                        <div className={`font-bold ${envType === env.id ? 'text-purple-400' : 'text-primary'}`}>{env.id}</div>
+                                        <div className="text-xs text-slate-400 mt-1">{env.desc}</div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Geographic Coverage */}
+                        {/* Machine Specifications */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-primary">Hardware Cluster Profile</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                    { id: 'Standard CPU', specs: '2 vCPU · 8 GB RAM', cost: 0, desc: 'Ideal for basic statistical analysis' },
+                                    { id: 'High-Memory CPU', specs: '8 vCPU · 32 GB RAM', cost: 200, desc: 'Optimized for larger tabular cohorts' },
+                                    { id: 'GPU Cluster', specs: '12 vCPU · 48 GB · NVIDIA A100', cost: 1500, desc: 'Required for imaging and deep models' }
+                                ].map(tier => (
+                                    <div
+                                        key={tier.id}
+                                        onClick={() => setInstanceTier(tier.id)}
+                                        className={`p-4 rounded-xl border cursor-pointer transition-all ${instanceTier === tier.id ? 'bg-purple-500/20 border-purple-500' : 'bg-slate-800/50 border-slate-700 hover:border-slate-500'}`}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div className={`font-bold ${instanceTier === tier.id ? 'text-purple-400' : 'text-primary'}`}>{tier.id}</div>
+                                            {tier.cost > 0 && <span className="text-xs text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded font-mono">+{tier.cost} Cr</span>}
+                                        </div>
+                                        <div className="text-xs font-semibold text-slate-300 mt-1">{tier.specs}</div>
+                                        <div className="text-[11px] text-slate-500 mt-2">{tier.desc}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Cohort Slice Filters */}
                         <div className="space-y-4 pt-4 border-t border-glass-border">
-                            <h3 className="text-xl font-bold text-primary">Geographic Coverage</h3>
+                            <h3 className="text-xl font-bold text-primary flex items-center gap-2"><Cpu size={20} className="text-purple-400" /> Sandboxed Cohort Mounting</h3>
+                            <p className="text-xs text-slate-400">Select demographics to compile and mount as a read-only subset `/data/sensitive_records.parquet` inside the container.</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-400 mb-2">Number of Districts</label>
-                                    <select value={districts} onChange={(e) => setDistricts(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-blue-500">
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Geographic Range</label>
+                                    <select value={districts} onChange={(e) => setDistricts(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500">
+                                        <option>All Districts</option>
                                         <option>1 District</option>
                                         <option>5 Districts</option>
                                         <option>10 Districts</option>
-                                        <option>All Districts</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-400 mb-2">Region Focus</label>
-                                    <select value={region} onChange={(e) => setRegion(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-blue-500">
+                                    <select value={region} onChange={(e) => setRegion(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500">
                                         <option>All Regions</option>
                                         <option>North</option>
                                         <option>South</option>
@@ -140,7 +125,6 @@ export const Customize = () => {
 
                         {/* Demographic Filters */}
                         <div className="space-y-4 pt-4 border-t border-glass-border">
-                            <h3 className="text-xl font-bold text-primary">Demographic Filters</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-400 mb-2">Age Range</label>
@@ -162,93 +146,97 @@ export const Customize = () => {
                             </div>
                         </div>
 
-                        {/* Data Quality & Services */}
+                        {/* Additional Services */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-glass-border">
                             <div className="space-y-4">
-                                <h3 className="text-xl font-bold text-primary">Data Quality Options</h3>
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input type="checkbox" checked={valReport} onChange={() => setValReport(!valReport)} className="w-5 h-5 rounded border-slate-600 bg-slate-800 accent-blue-500" />
-                                    <span className="text-slate-300 group-hover:text-white transition-colors">Include data validation report</span>
-                                </label>
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input type="checkbox" checked={anonCert} onChange={() => setAnonCert(!anonCert)} className="w-5 h-5 rounded border-slate-600 bg-slate-800 accent-blue-500" />
-                                    <span className="text-slate-300 group-hover:text-white transition-colors">Include anonymization certificate</span>
+                                <h3 className="text-xl font-bold text-primary">Container Storage Options</h3>
+                                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-purple-500/50 transition-colors">
+                                    <input type="checkbox" checked={persistentStorage} onChange={() => setPersistentStorage(!persistentStorage)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-purple-500 shrink-0" />
+                                    <div>
+                                        <div className="text-primary font-bold">Persistent Storage <span className="text-xs text-purple-400 ml-2">+500 Cr/yr</span></div>
+                                        <div className="text-xs text-slate-400 mt-1">Persist scripts, model weights & logs between sandbox sessions</div>
+                                    </div>
                                 </label>
                             </div>
 
                             <div className="space-y-4">
-                                <h3 className="text-xl font-bold text-primary">Additional Services</h3>
-                                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
-                                    <input type="checkbox" checked={apiAccess} onChange={() => setApiAccess(!apiAccess)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
+                                <h3 className="text-xl font-bold text-primary">Compliance & Support</h3>
+                                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-purple-500/50 transition-colors mb-3">
+                                    <input type="checkbox" checked={irbPack} onChange={() => setIrbPack(!irbPack)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-purple-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">API Access <span className="text-xs text-blue-400 ml-2">+₹4,140</span></div>
-                                        <div className="text-xs text-slate-400 mt-1">Real-time data access via REST API</div>
+                                        <div className="text-primary font-bold">IRB Protocol Compliance <span className="text-xs text-purple-400 ml-2">+500 Cr</span></div>
+                                        <div className="text-xs text-slate-400 mt-1">Generate signed, audit-ready IRB DUA compliance certificates</div>
                                     </div>
                                 </label>
-                                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-blue-500/50 transition-colors">
-                                    <input type="checkbox" checked={dataUpdates} onChange={() => setDataUpdates(!dataUpdates)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-blue-500 shrink-0" />
+                                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-purple-500/50 transition-colors">
+                                    <input type="checkbox" checked={supportSla} onChange={() => setSupportSla(!supportSla)} className="w-5 h-5 mt-0.5 rounded border-slate-600 bg-slate-800 accent-purple-500 shrink-0" />
                                     <div>
-                                        <div className="text-primary font-bold">Data Updates <span className="text-xs text-blue-400 ml-2">+₹8,290</span></div>
-                                        <div className="text-xs text-slate-400 mt-1">Quarterly dataset updates for 1 year</div>
+                                        <div className="text-primary font-bold">Priority Sandbox SLA <span className="text-xs text-purple-400 ml-2">+300 Cr/yr</span></div>
+                                        <div className="text-xs text-slate-400 mt-1">Guaranteed dedicated compute nodes with 24/7 technical support</div>
                                     </div>
                                 </label>
                             </div>
                         </div>
-
                     </div>
 
                     {/* Right Column: Order Summary (Sticky) */}
                     <div className="hidden lg:block relative">
-                        <div className="sticky top-32 glass-panel p-6 shadow-2xl border-t-2 border-blue-500">
-                            <h3 className="text-xl font-bold text-primary mb-6 flex items-center gap-2"><div className="w-2 h-6 bg-blue-500 rounded-sm"></div> Order Summary</h3>
+                        <div className="sticky top-32 glass-panel p-6 shadow-2xl border-t-2 border-purple-500">
+                            <h3 className="text-xl font-bold text-primary mb-6 flex items-center gap-2"><div className="w-2 h-6 bg-purple-500 rounded-sm"></div> Order Summary</h3>
 
                             <div className="space-y-4 text-sm mb-6 border-b border-glass-border pb-6">
                                 <div className="flex justify-between items-start">
-                                    <span className="text-slate-400">Dataset</span>
+                                    <span className="text-slate-400">Dataset Workspace</span>
                                     <span className="text-primary font-semibold text-right max-w-[150px]">{dataset?.name}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Records</span>
-                                    <span className="text-primary font-semibold">{records.toLocaleString()}</span>
+                                    <span className="text-slate-400">Cluster Specs</span>
+                                    <span className="text-primary font-semibold">{instanceTier}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Format</span>
-                                    <span className={`font-semibold ${format ? 'text-primary' : 'text-red-400'}`}>{format || 'Not selected'}</span>
+                                    <span className="text-slate-400">Environment</span>
+                                    <span className="text-primary font-semibold">{envType.split(' ')[0]}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Districts</span>
-                                    <span className="text-primary font-semibold">{districts.split(' ')[0]}</span>
+                                    <span className="text-slate-400">License Term</span>
+                                    <span className="text-purple-400 font-semibold">1-Year License</span>
                                 </div>
                             </div>
 
                             <div className="space-y-3 mb-6 border-b border-glass-border pb-6 text-sm">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Base Price</span>
-                                    <span className="text-primary font-medium">₹{basePrice.toLocaleString()}</span>
+                                    <span className="text-slate-400">Annual Activation Fee</span>
+                                    <span className="text-primary font-medium">{basePrice.toLocaleString()} Credits</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-400">Additional Services</span>
-                                    <span className="text-primary font-medium">₹{additionalServicesPrice.toLocaleString()}</span>
+                                    <span className="text-slate-400">Compute & Services Upgrades</span>
+                                    <span className="text-primary font-medium">{additionalServicesPrice.toLocaleString()} Credits</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-end mb-8">
-                                <span className="text-lg font-bold text-slate-300">Total</span>
-                                <span className="text-3xl font-bold text-blue-400">₹{total.toLocaleString()}</span>
+                                <span className="text-lg font-bold text-slate-300">Total Credits</span>
+                                <span className="text-3xl font-bold text-purple-400">{total.toLocaleString()} Cr</span>
                             </div>
 
                             <div className="space-y-3">
                                 <button
                                     onClick={() => {
-                                        if (!format) alert("Please select a format first.");
-                                        else navigate('/agreement', {
+                                        navigate('/agreement', {
                                             state: {
                                                 total,
                                                 basePrice,
                                                 additionalServicesPrice,
-                                                records,
-                                                format,
+                                                envType,
+                                                instanceTier,
+                                                persistentStorage,
+                                                irbPack,
+                                                supportSla,
                                                 districts,
+                                                region,
+                                                ageMin,
+                                                ageMax,
+                                                gender,
                                                 datasetId: dataset.id,
                                                 datasetName: dataset.name,
                                                 category: dataset.category,
@@ -256,25 +244,24 @@ export const Customize = () => {
                                             }
                                         });
                                     }}
-                                    className="w-full btn btn-primary py-3.5 justify-center shadow-lg shadow-blue-500/20 text-sm tracking-wide"
+                                    className="w-full btn btn-primary py-3.5 justify-center shadow-lg shadow-purple-500/20 text-sm tracking-wide"
                                 >
-                                    Proceed to Documentation
+                                    Proceed to Security Agreement
                                 </button>
                                 <button className="w-full btn btn-outline py-3 justify-center text-sm">
-                                    Save Configuration
+                                    Save Config
                                 </button>
                             </div>
 
                             <div className="mt-6 flex items-start gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-                                <ShieldCheck size={20} className="text-blue-500 shrink-0" />
+                                <ShieldCheck size={20} className="text-purple-500 shrink-0" />
                                 <div className="text-[11px] text-slate-400 leading-tight">
-                                    <strong className="text-slate-300 block mb-0.5">Secure Purchase</strong>
-                                    Your data and payment information are protected with enterprise-grade security.
+                                    <strong className="text-slate-300 block mb-0.5">Secure Sandboxed Compute</strong>
+                                    All computations are executed inside isolated sandboxes. Raw medical data downloads are strictly disabled.
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -285,12 +272,12 @@ export const Agreement = () => {
     const navigate = useNavigate();
     const { state: orderState } = useLocation();
     const [agreements, setAgreements] = useState({
-        privacy: false,
-        nda: false,
-        usage: false,
-        security: false,
-        liability: false,
-        audit: false
+        computeIsolation: false,
+        zeroDataLeakage: false,
+        noReconstruction: false,
+        outputAuditing: false,
+        ethicsClearance: false,
+        billingCredits: false
     });
 
     const allAgreed = Object.values(agreements).every(Boolean);
@@ -303,34 +290,34 @@ export const Agreement = () => {
         <div className="pt-32 pb-16 min-h-screen">
             <div className="container mx-auto px-8 max-w-4xl">
                 <div className="flex items-center gap-3 mb-6 border-b border-glass-border pb-4">
-                    <ShieldCheck size={32} className="text-blue-400" />
-                    <h1 className="text-3xl font-bold text-primary">Legal Documentation & Compliance</h1>
+                    <ShieldCheck size={32} className="text-purple-400" />
+                    <h1 className="text-3xl font-bold text-primary">Compute-to-Data Security Agreement</h1>
                 </div>
 
-                <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-xl p-4 mb-8 flex items-start gap-4">
-                    <AlertTriangle className="text-yellow-400 shrink-0 mt-0.5" size={24} />
+                <div className="bg-purple-500/10 border border-purple-500/50 rounded-xl p-4 mb-8 flex items-start gap-4">
+                    <AlertTriangle className="text-purple-400 shrink-0 mt-0.5" size={24} />
                     <div>
-                        <h4 className="font-bold text-yellow-400">Important Notice</h4>
-                        <p className="text-sm text-yellow-200/80 mt-1">All terms and conditions must be accepted to proceed. These agreements are legally binding and will be enforced.</p>
+                        <h4 className="font-bold text-purple-400">Strict Sandbox Regulations</h4>
+                        <p className="text-sm text-purple-200/80 mt-1">To protect patient privacy, all researchers must sign this Compute custody agreement before accessing the sandbox environment.</p>
                     </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
                     {[
-                        { id: 'privacy', title: 'Data Protection & Privacy Compliance', text: 'I acknowledge that this dataset contains sensitive health information and agree to comply with all applicable data protection regulations including GDPR, HIPAA, DPDP Act, and local privacy laws. I will implement appropriate technical and organizational measures to protect the data from unauthorized access, disclosure, or misuse.' },
-                        { id: 'nda', title: 'Non-Disclosure Agreement', text: 'I agree to maintain strict confidentiality regarding all data received and will not disclose, share, or distribute any portion of this dataset to third parties without prior written consent from Auratral. This obligation extends to all employees, contractors, and affiliates who may have access to the data.' },
-                        { id: 'usage', title: 'Usage Restrictions & Compliance', text: 'I understand that this data is for legitimate research, analysis, or business purposes only. I will not use this data for any illegal activities, discrimination, harassment, or any purpose that could harm individuals or groups. I will not attempt to re-identify anonymized individuals.' },
-                        { id: 'security', title: 'Data Security Requirements', text: 'I commit to implementing industry-standard security measures including encryption at rest and in transit, access controls, regular security audits, and secure data disposal procedures. I will immediately report any data breaches or security incidents to Auratral within 24 hours of discovery.' },
-                        { id: 'liability', title: 'Liability & Indemnification', text: 'I accept full liability for any misuse of the data and agree to indemnify Auratral against any claims, damages, or legal actions arising from my use of the dataset. I understand that Auratral provides the data "as is" without warranties and shall not be liable for any indirect or consequential damages.' },
-                        { id: 'audit', title: 'Audit Rights & Monitoring', text: 'I consent to periodic audits and monitoring of my data usage practices by Auratral or its authorized representatives. I will provide reasonable access to systems, documentation, and personnel as required for compliance verification and will maintain detailed logs of data access and usage.' }
+                        { id: 'computeIsolation', title: 'Isolated Compute Sandbox Compliance', text: 'I agree to run analysis code exclusively within the provided Docker container workspace. I will not attempt to bypass kernel namespaces, scale privileges, or initiate unauthorized outbound network requests.' },
+                        { id: 'zeroDataLeakage', title: 'Zero Patient-Level Data Leakage', text: 'I acknowledge that patient-level raw records cannot be downloaded, queried via external APIs, or copied. I will not write scripts designed to print, dump, or exfiltrate raw database rows from the sandbox.' },
+                        { id: 'noReconstruction', title: 'Prohibition of Patient Reconstruction Attacks', text: 'I promise not to train generative adversarial networks (GANs), large language models, or other models configured to reconstruct individual patient records, identifiers, or clinical notes.' },
+                        { id: 'outputAuditing', title: 'Trained Weights & Metrics Export Restrictions', text: 'I understand that only trained model weights (.pkl, .h5), evaluation performance metrics (.csv, .json), and compiler logs are exportable. All exports are subject to automated data leakage auditing.' },
+                        { id: 'ethicsClearance', title: 'IRB Protocol Alignment', text: 'I certify that our research team holds appropriate Institutional Review Board (IRB) or ethics board approvals matching the scope of clinical research defined in our query.' },
+                        { id: 'billingCredits', title: 'Compute Credit Burn Consent', text: 'I consent to the deduction of workspace license activation credits and active per-minute container execution burn rates based on our selected cluster profile.' }
                     ].map((item) => (
-                        <div key={item.id} className="glass-panel p-5 border-l-4 border-l-transparent hover:border-l-blue-500 transition-all flex items-start gap-4 cursor-pointer" onClick={() => toggleAgreement(item.id)}>
+                        <div key={item.id} className="glass-panel p-5 border-l-4 border-l-transparent hover:border-l-purple-500 transition-all flex items-start gap-4 cursor-pointer" onClick={() => toggleAgreement(item.id)}>
                             <div className="mt-1 relative flex items-center justify-center shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={agreements[item.id]}
                                     readOnly
-                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer"
+                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-purple-500 checked:border-purple-500 transition-all cursor-pointer"
                                 />
                                 {agreements[item.id] && <svg className="w-3.5 h-3.5 text-white absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                             </div>
@@ -342,11 +329,11 @@ export const Agreement = () => {
                     ))}
                 </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
-                    <Info className="text-blue-400 shrink-0 mt-0.5" size={24} />
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
+                    <Info className="text-purple-400 shrink-0 mt-0.5" size={24} />
                     <div>
-                        <h4 className="font-bold text-blue-400">Documentation Delivery</h4>
-                        <p className="text-sm text-blue-200/70 mt-1 leading-relaxed">Upon completion of this agreement, a comprehensive legal documentation package including all signed terms, compliance guidelines, and usage instructions will be automatically sent to your registered email address. These documents will also be permanently available in your "My Documents" section within your account dashboard for future reference and compliance verification.</p>
+                        <h4 className="font-bold text-purple-400">Sandbox Provisioning Protocol</h4>
+                        <p className="text-sm text-purple-200/70 mt-1 leading-relaxed">Upon signing, your ethics review details will be forwarded to the IRB committee for rapid digital sign-off. Once approved (typically within 24 hours), your credit balance will be debited, and the sandbox instance will be deployed.</p>
                     </div>
                 </div>
 
@@ -357,7 +344,7 @@ export const Agreement = () => {
                         className={`btn py-3 px-8 transition-all ${allAgreed ? 'btn-primary bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
                         disabled={!allAgreed}
                     >
-                        Sign & Proceed to Payment
+                        Sign & Proceed to IRB Review
                     </button>
                 </div>
             </div>
@@ -394,40 +381,40 @@ export const IrbReview = () => {
 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6 border-b border-glass-border pb-4">
-                    <ClipboardList size={32} className="text-emerald-400" />
+                    <ClipboardList size={32} className="text-purple-400" />
                     <div>
-                        <h1 className="text-3xl font-bold text-primary">IRB / IEC Ethics Review</h1>
+                        <h1 className="text-3xl font-bold text-primary">IRB / IEC Ethics Declaration</h1>
                         <p className="text-secondary text-sm mt-1">Institutional Review Board / Independent Ethics Committee Submission</p>
                     </div>
                 </div>
 
                 {/* Info Banner */}
-                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
-                    <FileText className="text-emerald-400 shrink-0 mt-0.5" size={24} />
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
+                    <FileText className="text-purple-400 shrink-0 mt-0.5" size={24} />
                     <div>
-                        <h4 className="font-bold text-emerald-400">Ethics Review Submission</h4>
-                        <p className="text-sm text-emerald-200/70 mt-1 leading-relaxed">Please provide your research details below for IRB/IEC review. Our ethics committee will evaluate your submission to ensure compliance with ethical research standards and institutional requirements before granting data access.</p>
+                        <h4 className="font-bold text-purple-400">Compute Session Ethics Review</h4>
+                        <p className="text-sm text-purple-200/70 mt-1 leading-relaxed">Provide your institutional study protocol details below. Our data governance board reviews all submissions to verify that the planned sandboxed ML model training complies with patient data protection mandates.</p>
                     </div>
                 </div>
 
                 {/* Principal Investigator Details */}
                 <div className="glass-panel p-6 mb-6">
                     <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                        <div className="w-2 h-5 bg-emerald-500 rounded-sm"></div>
+                        <div className="w-2 h-5 bg-purple-500 rounded-sm"></div>
                         Principal Investigator Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label className="block text-sm font-medium text-slate-400 mb-2">Full Name <span className="text-red-400">*</span></label>
-                            <input type="text" value={irb.piName} onChange={e => update('piName', e.target.value)} placeholder="Dr. John Smith" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                            <input type="text" value={irb.piName} onChange={e => update('piName', e.target.value)} placeholder="Dr. Sophia Patel" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Email Address <span className="text-red-400">*</span></label>
-                            <input type="email" value={irb.piEmail} onChange={e => update('piEmail', e.target.value)} placeholder="pi@institution.edu" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Institutional Email <span className="text-red-400">*</span></label>
+                            <input type="email" value={irb.piEmail} onChange={e => update('piEmail', e.target.value)} placeholder="sophia.patel@aiims.edu" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Institution / Organization <span className="text-red-400">*</span></label>
-                            <input type="text" value={irb.institution} onChange={e => update('institution', e.target.value)} placeholder="e.g. Stanford University School of Medicine" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-emerald-500 transition-colors" />
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Research Institution <span className="text-red-400">*</span></label>
+                            <input type="text" value={irb.institution} onChange={e => update('institution', e.target.value)} placeholder="e.g. AIIMS Delhi / Tata Memorial Hospital" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                         </div>
                     </div>
                 </div>
@@ -441,7 +428,7 @@ export const IrbReview = () => {
                     <div className="space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-slate-400 mb-2">Study Title <span className="text-red-400">*</span></label>
-                            <input type="text" value={irb.studyTitle} onChange={e => update('studyTitle', e.target.value)} placeholder="e.g. Cardiovascular Risk Prediction Using Machine Learning on Indian Population Data" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                            <input type="text" value={irb.studyTitle} onChange={e => update('studyTitle', e.target.value)} placeholder="e.g. Training Neural Networks on Medical Scans for Automated Pathology Classification" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
@@ -477,72 +464,65 @@ export const IrbReview = () => {
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Detailed Scope of Research <span className="text-red-400">*</span></label>
-                            <textarea value={irb.researchScope} onChange={e => update('researchScope', e.target.value)} rows={4} placeholder="Describe the objectives, methodology, and expected outcomes of your research. Include specific hypotheses, data analysis approaches, and how this dataset will be utilized in your study..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors resize-none" />
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Detailed Research Scope & Model Description <span className="text-red-400">*</span></label>
+                            <textarea value={irb.researchScope} onChange={e => update('researchScope', e.target.value)} rows={4} placeholder="Describe the objectives, algorithms (e.g., CNN, ResNet, XGBoost), and expected metrics you plan to extract from the sandbox environment. Detail how model output weights will be utilized downstream..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors resize-none" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-2">Expected Duration</label>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Sandbox License Period</label>
                                 <select value={irb.expectedDuration} onChange={e => update('expectedDuration', e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors">
-                                    <option value="">Select duration...</option>
-                                    <option>Less than 6 months</option>
-                                    <option>6 months - 1 year</option>
-                                    <option>1 - 2 years</option>
-                                    <option>2 - 3 years</option>
-                                    <option>3+ years</option>
+                                    <option>1-Year License Period</option>
+                                    <option>2-Year License Period</option>
+                                    <option>3-Year License Period</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-2">Estimated Sample Size</label>
-                                <input type="text" value={irb.estimatedSampleSize} onChange={e => update('estimatedSampleSize', e.target.value)} placeholder="e.g. 10,000 records" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Preloaded Package Setups</label>
+                                <input type="text" value={irb.estimatedSampleSize} onChange={e => update('estimatedSampleSize', e.target.value)} placeholder="e.g. scikit-learn, pytorch, pandas" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-400 mb-2">Funding Source</label>
-                                <input type="text" value={irb.fundingSource} onChange={e => update('fundingSource', e.target.value)} placeholder="e.g. NIH Grant, Internal" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
+                                <input type="text" value={irb.fundingSource} onChange={e => update('fundingSource', e.target.value)} placeholder="e.g. Government, Institutional, Commercial" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors" />
                             </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Additional Notes / Comments</label>
-                            <textarea value={irb.additionalNotes} onChange={e => update('additionalNotes', e.target.value)} rows={3} placeholder="Any additional information, special requirements, or comments for the ethics review..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-primary outline-none focus:border-purple-500 transition-colors resize-none" />
                         </div>
                     </div>
                 </div>
 
-                {/* Confirmations */}
+                {/* Declarations */}
                 <div className="glass-panel p-6 mb-8">
                     <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                         <div className="w-2 h-5 bg-amber-500 rounded-sm"></div>
-                        Declarations
+                        Ethics Declarations
                     </h3>
                     <div className="space-y-4">
-                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-emerald-500/50 transition-colors">
+                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-purple-500/50 transition-colors">
                             <div className="mt-0.5 relative flex items-center justify-center shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={irb.confirmAccuracy}
                                     onChange={() => update('confirmAccuracy', !irb.confirmAccuracy)}
-                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-emerald-500 checked:border-emerald-500 transition-all cursor-pointer"
+                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-purple-500 checked:border-purple-500 transition-all cursor-pointer"
                                 />
                                 {irb.confirmAccuracy && <svg className="w-3.5 h-3.5 text-white absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                             </div>
                             <div>
-                                <span className="text-primary font-medium">Accuracy Confirmation <span className="text-red-400">*</span></span>
-                                <p className="text-xs text-slate-400 mt-1">I confirm that all information provided above is accurate and complete. I understand that providing false or misleading information may result in termination of data access and potential legal consequences.</p>
+                                <span className="text-primary font-medium">Protocol Authenticity <span className="text-red-400">*</span></span>
+                                <p className="text-xs text-slate-400 mt-1">I certify that the clinical study description matches our institution's authorized research aims, and that no model extraction will be used to reconstruct private records.</p>
                             </div>
                         </label>
-                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-emerald-500/50 transition-colors">
+                        <label className="flex items-start gap-3 cursor-pointer group p-3 rounded-lg border border-slate-700 bg-slate-800/50 hover:border-purple-500/50 transition-colors">
                             <div className="mt-0.5 relative flex items-center justify-center shrink-0">
                                 <input
                                     type="checkbox"
                                     checked={irb.confirmEthics}
                                     onChange={() => update('confirmEthics', !irb.confirmEthics)}
-                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-emerald-500 checked:border-emerald-500 transition-all cursor-pointer"
+                                    className="peer w-5 h-5 rounded border-slate-600 bg-slate-800 appearance-none checked:bg-purple-500 checked:border-purple-500 transition-all cursor-pointer"
                                 />
                                 {irb.confirmEthics && <svg className="w-3.5 h-3.5 text-white absolute pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                             </div>
                             <div>
-                                <span className="text-primary font-medium">Ethics Compliance <span className="text-red-400">*</span></span>
-                                <p className="text-xs text-slate-400 mt-1">I confirm that this research has been reviewed and approved by an authorized IRB/IEC and that I will conduct this study in accordance with the Declaration of Helsinki, ICH-GCP guidelines, and all applicable local regulations.</p>
+                                <span className="text-primary font-medium">Data Safety Ethics Compliance <span className="text-red-400">*</span></span>
+                                <p className="text-xs text-slate-400 mt-1">I agree to immediately terminate computation and report any unexpected data exposures or leakages encountered during sandbox runtimes.</p>
                             </div>
                         </label>
                     </div>
@@ -552,8 +532,8 @@ export const IrbReview = () => {
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-8 flex items-start gap-4">
                     <Clock className="text-amber-400 shrink-0 mt-0.5" size={24} />
                     <div>
-                        <h4 className="font-bold text-amber-400">Review Processing Time</h4>
-                        <p className="text-sm text-amber-200/70 mt-1 leading-relaxed">Once submitted, your application will be reviewed by our IRB/IEC ethics committee. You can typically expect an approval or rejection decision within <strong className="text-amber-300">24 hours</strong>. You will be notified via email at the address provided above once a decision has been made.</p>
+                        <h4 className="font-bold text-amber-400">Governance Clearance Time</h4>
+                        <p className="text-sm text-amber-200/70 mt-1 leading-relaxed">Once submitted, your sandbox allocation request is queued for ethics committee clearance. Decisions are typically delivered within <strong className="text-amber-300">24 hours</strong>. Approved requests will automatically trigger credit debit and workspace deployment.</p>
                     </div>
                 </div>
 
@@ -562,11 +542,11 @@ export const IrbReview = () => {
                     <button onClick={() => navigate(-1)} className="btn btn-outline py-3 px-6">Go Back</button>
                     <button
                         onClick={() => navigate('/checkout', { state: orderState })}
-                        className={`btn py-3 px-8 transition-all flex items-center gap-2 ${requiredFilled ? 'btn-primary bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
+                        className={`btn py-3 px-8 transition-all flex items-center gap-2 ${requiredFilled ? 'btn-primary bg-purple-600 hover:bg-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'}`}
                         disabled={!requiredFilled}
                     >
                         <ShieldCheck size={16} />
-                        Submit & Proceed to Payment
+                        Proceed to Credit Allocation
                     </button>
                 </div>
 
@@ -584,245 +564,75 @@ export const Checkout = () => {
     const total = order?.total ?? 0;
     const basePrice = order?.basePrice ?? 0;
     const addons = order?.additionalServicesPrice ?? 0;
-    const records = order?.records ?? '--';
-    const format = order?.format ?? '--';
-    const districts = order?.districts ?? '--';
-    const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}.00`;
+    const envType = order?.envType ?? '--';
+    const instanceTier = order?.instanceTier ?? '--';
+    
+    // Mock researcher credit balance
+    const [balance, setBalance] = useState(() => {
+        const localBal = localStorage.getItem('auratral_credits_balance');
+        return localBal ? Number(localBal) : 12500;
+    });
 
-    const handlePay = async () => {
+    const isSufficient = balance >= total;
+
+    const handleDebitAndDeploy = async () => {
         if (!user) {
-            alert("Please log in to complete your purchase.");
+            alert("Please log in to complete sandbox provisioning.");
             navigate('/login');
+            return;
+        }
+
+        if (!isSufficient) {
+            alert("Insufficient credits. Please purchase a credit pack first or top up.");
             return;
         }
 
         setSubmitting(true);
         
-        // Save purchase documentation package to Firestore (non-blocking)
-        const purchaseData = {
+        // Save workspace to Firestore (active runtimes list)
+        const workspaceData = {
             userId: user.uid,
             datasetId: order?.datasetId || 'AUR-EHR-101',
             datasetName: order?.datasetName || 'Longitudinal ICU Encounters',
             category: order?.category || 'EHR',
-            price: order?.total || 16500,
-            format: order?.format || 'CSV',
-            recordsCount: order?.records || 50,
+            price: total,
+            envType: envType,
+            instanceTier: instanceTier,
+            persistentStorage: order?.persistentStorage || false,
+            irbPack: order?.irbPack || false,
+            supportSla: order?.supportSla || false,
+            cohortFilters: {
+                districts: order?.districts || 'All Districts',
+                region: order?.region || 'All Regions',
+                ageRange: `${order?.ageMin || 18} - ${order?.ageMax || 85}`,
+                gender: order?.gender || 'Balanced (50-50)'
+            },
             purchaseDate: new Date().toISOString(),
             status: 'Active',
-            license: 'Academic Research License',
+            license: '1-Year Sandboxed Compute License',
             doi: order?.doi || '10.5281/auratral.ehr.ehr-101'
         };
 
-        // Trigger actual dataset download since payment checkout is dummy
         try {
-            const datasetId = order?.datasetId || 'AUR-EHR-101';
-            const localData = fallbackRegistry[datasetId]
-                || Object.values(fallbackRegistry).find(d => d.id?.toLowerCase() === datasetId?.toLowerCase())
-                || fallbackRegistry[Object.keys(fallbackRegistry)[0]];
+            // Optimistic debit update
+            const newBal = balance - total;
+            setBalance(newBal);
+            localStorage.setItem('auratral_credits_balance', String(newBal));
 
-            if (localData) {
-                let records = localData.recordsData || [];
-                const columns = localData.columns || [];
-                const recordsCount = order?.records || 50;
+            await addDoc(collection(db, 'purchases'), workspaceData);
+            
+            // Set flag in localStorage to tell dashboard to highlight this new workspace
+            localStorage.setItem('auratral_just_deployed', order?.datasetId || 'AUR-EHR-101');
 
-                if (typeof recordsCount === 'number') {
-                    records = records.slice(0, recordsCount);
-                }
-
-                if (records.length > 0) {
-                    let fileContent = '';
-                    let mimeType = 'text/plain';
-                    let fileExtension = 'txt';
-                    const datasetName = order?.datasetName || localData.name || 'Dataset';
-
-                    const cleanVal = (v) => {
-                        if (v === null || v === undefined) return '';
-                        return String(v).replace(/"/g, '""');
-                    };
-
-                    const selectedFmt = (order?.format || 'CSV').toUpperCase();
-
-                    if (selectedFmt === 'CSV') {
-                        const headers = columns.map(c => c.name);
-                        const csvRows = [headers.join(',')];
-                        
-                        records.forEach(row => {
-                            const values = headers.map(header => {
-                                const val = row[header];
-                                return `"${cleanVal(val)}"`;
-                            });
-                            csvRows.push(values.join(','));
-                        });
-                        
-                        fileContent = csvRows.join('\n');
-                        mimeType = 'text/csv;charset=utf-8;';
-                        fileExtension = 'csv';
-                    } 
-                    else if (selectedFmt === 'JSON') {
-                        fileContent = JSON.stringify(records, null, 2);
-                        mimeType = 'application/json;charset=utf-8;';
-                        fileExtension = 'json';
-                    } 
-                    else if (selectedFmt === 'SQL') {
-                        const tableName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                        const headers = columns.map(c => c.name);
-                        const sqlStatements = [
-                            `-- Auratral Dynamic SQL Export`,
-                            `-- Dataset: ${datasetName}`,
-                            `-- Generated on ${new Date().toISOString()}`,
-                            `CREATE TABLE ${tableName} (`,
-                            columns.map(c => `  ${c.name} ${c.dtype === 'Int32' ? 'INTEGER' : c.dtype === 'Float32' ? 'NUMERIC' : c.dtype === 'Boolean' ? 'BOOLEAN' : 'VARCHAR(255)'}`).join(',\n'),
-                            `);\n`
-                        ];
-
-                        records.forEach(row => {
-                            const values = headers.map(header => {
-                                const val = row[header];
-                                if (val === null || val === undefined) return 'NULL';
-                                if (typeof val === 'boolean' || val === 'true' || val === 'false') return String(val).toLowerCase();
-                                if (typeof val === 'number') return val;
-                                return `'${cleanVal(val)}'`;
-                            });
-                            sqlStatements.push(`INSERT INTO ${tableName} (${headers.join(', ')}) VALUES (${values.join(', ')});`);
-                        });
-
-                        fileContent = sqlStatements.join('\n');
-                        mimeType = 'application/sql;charset=utf-8;';
-                        fileExtension = 'sql';
-                    } 
-                    else if (selectedFmt === 'FHIR R4') {
-                        const fhirBundle = {
-                            resourceType: "Bundle",
-                            type: "transaction",
-                            entry: []
-                        };
-
-                        records.forEach((row, rIdx) => {
-                            const pId = row.patient_id || row.subject_id || row.maternal_id || row.respondent_id || `patient-${rIdx}`;
-                            const patientResource = {
-                                resource: {
-                                    resourceType: "Patient",
-                                    id: pId,
-                                    gender: row.gender ? row.gender.toLowerCase() : "unknown",
-                                    birthDate: row.age ? new Date(new Date().getFullYear() - row.age, 0, 1).toISOString().split('T')[0] : undefined
-                                },
-                                request: {
-                                    method: "POST",
-                                    url: "Patient"
-                                }
-                            };
-                            fhirBundle.entry.push(patientResource);
-
-                            Object.keys(row).forEach(key => {
-                                if (!['patient_id', 'subject_id', 'maternal_id', 'respondent_id', 'gender', 'age'].includes(key) && row[key] !== null) {
-                                    const observationResource = {
-                                        resource: {
-                                            resourceType: "Observation",
-                                            status: "final",
-                                            code: {
-                                                coding: [{
-                                                    system: "http://loinc.org",
-                                                    code: `aur-${key}`,
-                                                    display: key.replace(/_/g, ' ')
-                                                }]
-                                            },
-                                            subject: {
-                                                reference: `Patient/${pId}`
-                                            },
-                                            valueString: typeof row[key] === 'string' ? row[key] : undefined,
-                                            valueQuantity: typeof row[key] === 'number' ? {
-                                                value: row[key],
-                                                unit: columns.find(c => c.name === key)?.units || ''
-                                            } : undefined,
-                                            valueBoolean: typeof row[key] === 'boolean' ? row[key] : undefined
-                                        },
-                                        request: {
-                                            method: "POST",
-                                            url: "Observation"
-                                        }
-                                    };
-                                    fhirBundle.entry.push(observationResource);
-                                }
-                            });
-                        });
-
-                        fileContent = JSON.stringify(fhirBundle, null, 2);
-                        mimeType = 'application/fhir+json;charset=utf-8;';
-                        fileExtension = 'fhir.json';
-                    } 
-                    else if (selectedFmt === 'VCF') {
-                        const vcfLines = [
-                            '##fileformat=VCFv4.2',
-                            `##fileDate=${new Date().toISOString().split('T')[0]}`,
-                            '##source=AuratralGenomicsExporter',
-                            '##reference=GRCh38',
-                            '##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">',
-                            '##INFO=<ID=SIG,Number=1,Type=String,Description="Clinical Significance">',
-                            '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO'
-                        ];
-
-                        records.forEach(row => {
-                            const chrom = row.chromosome || '1';
-                            const pos = row.position || '100000';
-                            const variantId = row.variant_id || 'rs0000';
-                            const ref = row.ref_allele || 'N';
-                            const alt = row.alt_allele || 'N';
-                            const af = row.allele_frequency !== undefined ? row.allele_frequency : '0.0';
-                            const sig = row.clinical_significance || 'Unknown';
-                            vcfLines.push(`${chrom}\t${pos}\t${variantId}\t${ref}\t${alt}\t100\tPASS\tAF=${af};SIG=${sig}`);
-                        });
-
-                        fileContent = vcfLines.join('\n');
-                        mimeType = 'text/vcard;charset=utf-8;';
-                        fileExtension = 'vcf';
-                    }
-                    else {
-                        // default format
-                        const headers = columns.map(c => c.name);
-                        if (headers.length > 0) {
-                            const csvRows = [headers.join(',')];
-                            records.forEach(row => {
-                                csvRows.push(headers.map(h => `"${cleanVal(row[h])}"`).join(','));
-                            });
-                            fileContent = csvRows.join('\n');
-                            mimeType = 'text/csv;charset=utf-8;';
-                            fileExtension = selectedFmt.toLowerCase();
-                        } else {
-                            fileContent = JSON.stringify(records, null, 2);
-                            mimeType = 'application/json;charset=utf-8;';
-                            fileExtension = selectedFmt.toLowerCase();
-                        }
-                    }
-
-                    if (fileContent) {
-                        const blob = new Blob([fileContent], { type: mimeType });
-                        const link = document.createElement("a");
-                        const url = URL.createObjectURL(blob);
-                        link.setAttribute("href", url);
-                        const safeName = datasetName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                        link.setAttribute("download", `${safeName}_${recordsCount}_records.${fileExtension}`);
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }
-                }
-            }
-        } catch (downloadErr) {
-            console.error("Error during auto-download: ", downloadErr);
-        }
-
-        // Fire and forget/optimistic update to Firestore (non-blocking)
-        try {
-            addDoc(collection(db, 'purchases'), purchaseData).catch(err => {
-                console.warn("Non-blocking Firestore save failed:", err);
-            });
+            alert(`Compute Workspace provisioned successfully! ${total} credits debited from your pool. Redirecting to Dashboard.`);
+            navigate('/dashboard');
         } catch (fsErr) {
-            console.warn("Firestore error ignored to keep download flow functional:", fsErr);
+            console.error("Firestore error while saving workspace:", fsErr);
+            alert("Could not provision workspace database entry, but credits were debited. Please contact support.");
+            navigate('/dashboard');
+        } finally {
+            setSubmitting(false);
         }
-
-        setSubmitting(false);
-        alert("Payment processed successfully! Your dataset has been provisioned. Redirecting to Dashboard.");
-        navigate('/dashboard');
     };
 
     return (
@@ -830,75 +640,111 @@ export const Checkout = () => {
             <div className="container mx-auto px-8 max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
 
                 <div>
-                    <h1 className="text-3xl font-bold text-primary mb-2">Secure Checkout</h1>
-                    <p className="text-secondary mb-8">Payment processed via Stripe</p>
+                    <h1 className="text-3xl font-bold text-primary mb-2">Compute Credit Allocation</h1>
+                    <p className="text-secondary mb-8">Debiting sandbox workspace activation credits</p>
 
-                    <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Email for License Key</label>
-                            <input type="email" className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-primary outline-none" defaultValue={user?.email || ''} placeholder="team@company.com" />
+                    <div className="space-y-6">
+                        {/* Balance Card */}
+                        <div className="p-6 bg-slate-800/80 border border-slate-700 rounded-xl">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="text-sm font-semibold text-slate-400">Your Credit Pool</div>
+                                <div className="text-xs text-slate-500 font-mono">1 Cr = ₹10</div>
+                            </div>
+                            <div className="text-3xl font-extrabold text-primary mb-2">{balance.toLocaleString()} Credits</div>
+                            <p className="text-xs text-slate-400">Available balance for clinical research sandbox runtimes.</p>
                         </div>
 
-                        <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg">
-                            <div className="flex items-center gap-2 mb-4 text-slate-300">
-                                <CreditCard size={18} /> Card Details
+                        {/* Allocation Details */}
+                        <div className="p-5 bg-slate-900/50 border border-slate-800 rounded-lg space-y-3">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-slate-500">Current Balance</span>
+                                <span className="text-slate-300 font-mono">{balance.toLocaleString()} Cr</span>
                             </div>
-                            <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none mb-3" placeholder="Card Number" defaultValue="4242 •••• •••• 4242" />
-                            <div className="grid grid-cols-2 gap-3">
-                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="MM / YY" defaultValue="12 / 28" />
-                                <input type="text" className="w-full bg-black/20 border border-white/10 rounded p-3 text-primary outline-none" placeholder="CVC" defaultValue="123" />
+                            <div className="flex justify-between text-sm text-red-400 font-semibold">
+                                <span>Required Allocation</span>
+                                <span className="font-mono">-{total.toLocaleString()} Cr</span>
+                            </div>
+                            <div className="border-t border-slate-800 pt-3 flex justify-between text-sm font-bold">
+                                <span className="text-slate-400">Remaining Balance</span>
+                                <span className={`${isSufficient ? 'text-green-400' : 'text-red-500'} font-mono`}>
+                                    {(balance - total).toLocaleString()} Cr
+                                </span>
                             </div>
                         </div>
 
-                        <button 
-                            onClick={handlePay} 
-                            disabled={submitting}
-                            className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(45,212,191,0.2)] disabled:opacity-50"
-                        >
-                            {submitting ? (
-                                <>
-                                    <Activity className="animate-spin" size={16} /> Processing Payment...
-                                </>
-                            ) : (
-                                <>
-                                    <Lock size={16} /> Pay {fmt(total)}
-                                </>
-                            )}
-                        </button>
-                        <p className="text-[10px] text-center text-slate-500">Secured by 256-bit SSL encryption</p>
-                    </form>
+                        {!isSufficient && (
+                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3">
+                                <AlertTriangle className="text-red-400 mt-0.5 shrink-0" size={18} />
+                                <div className="text-xs text-red-200">
+                                    <strong className="block mb-1">Insufficient Credits</strong>
+                                    You need {(total - balance).toLocaleString()} more credits to launch this sandbox. Click below to top up your account.
+                                </div>
+                            </div>
+                        )}
+
+                        {isSufficient ? (
+                            <button 
+                                onClick={handleDebitAndDeploy} 
+                                disabled={submitting}
+                                className="w-full btn btn-primary flex justify-center items-center gap-2 py-4 shadow-[0_4px_20px_rgba(168,85,247,0.2)] disabled:opacity-50 font-bold"
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Activity className="animate-spin" size={16} /> Deploying Isolated Sandbox...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock size={16} /> Deduct {total.toLocaleString()} Cr & Launch Sandbox
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => {
+                                    alert("Top-up request sent! In development mode, we added 5,000 Credits to your pool.");
+                                    const newBal = balance + 5000;
+                                    setBalance(newBal);
+                                    localStorage.setItem('auratral_credits_balance', String(newBal));
+                                }}
+                                className="w-full btn btn-outline border-purple-500/50 hover:bg-purple-500/10 text-purple-400 py-4 font-bold flex justify-center items-center gap-2"
+                            >
+                                Buy Credit Package (+5,000 Credits / ₹50,000)
+                            </button>
+                        )}
+                        <p className="text-[10px] text-center text-slate-500">Security audited by Auratral Compliance & Privacy Committee</p>
+                    </div>
                 </div>
 
-                <div className="glass-panel p-8 h-fit">
-                    <h3 className="font-bold text-primary mb-4 border-b border-glass-border pb-2">Order Summary</h3>
-                    <div className="space-y-3 text-sm mb-4">
+                <div className="glass-panel p-8 h-fit border border-slate-700/40">
+                    <h3 className="font-bold text-primary mb-4 border-b border-glass-border pb-2">Workspace Invoice</h3>
+                    <div className="space-y-4 text-sm mb-4">
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Records</span>
-                            <span className="text-primary font-medium">{typeof records === 'number' ? records.toLocaleString('en-IN') : records}</span>
+                            <span className="text-slate-400">Sandbox Environment</span>
+                            <span className="text-primary font-medium">{envType.split(' ')[0]}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Format</span>
-                            <span className="text-primary font-medium">{format}</span>
+                            <span className="text-slate-400">Hardware Profile</span>
+                            <span className="text-primary font-medium">{instanceTier}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-slate-400">Districts</span>
-                            <span className="text-primary font-medium">{districts}</span>
+                            <span className="text-slate-400">License Term</span>
+                            <span className="text-purple-400 font-semibold">1-Year Term (Annual License)</span>
                         </div>
                         <div className="flex justify-between border-t border-glass-border pt-3">
-                            <span className="text-slate-400">Base Price</span>
-                            <span className="text-primary font-medium">{fmt(basePrice)}</span>
+                            <span className="text-slate-400">Annual Activation Fee</span>
+                            <span className="text-primary font-medium">{basePrice.toLocaleString()} Credits</span>
                         </div>
                         {addons > 0 && (
                             <div className="flex justify-between">
-                                <span className="text-slate-400">Add-ons</span>
-                                <span className="text-primary font-medium">{fmt(addons)}</span>
+                                <span className="text-slate-400">Sandbox Upgrades</span>
+                                <span className="text-primary font-medium">{addons.toLocaleString()} Credits</span>
                             </div>
                         )}
                     </div>
 
                     <div className="border-t border-glass-border pt-4 flex justify-between items-center">
-                        <span className="font-bold text-slate-300">Total</span>
-                        <span className="text-2xl font-bold text-primary">{fmt(total)}</span>
+                        <span className="font-bold text-slate-300">Total Credits</span>
+                        <span className="text-2xl font-bold text-purple-400">{total.toLocaleString()} Cr</span>
                     </div>
                 </div>
 
