@@ -612,24 +612,30 @@ export const Checkout = () => {
             license: '1-Year Sandboxed Compute License',
             doi: order?.doi || '10.5281/auratral.ehr.ehr-101'
         };
-
         try {
             // Optimistic debit update
             const newBal = balance - total;
             setBalance(newBal);
             localStorage.setItem('auratral_credits_balance', String(newBal));
+            window.dispatchEvent(new Event('auratral_credits_updated'));
 
-            await addDoc(collection(db, 'purchases'), workspaceData);
-            
-            // Set flag in localStorage to tell dashboard to highlight this new workspace
+            // Save to localStorage immediately as local persistence fallback
+            const localPurchases = JSON.parse(localStorage.getItem('auratral_local_purchases') || '[]');
+            localPurchases.push(workspaceData);
+            localStorage.setItem('auratral_local_purchases', JSON.stringify(localPurchases));
+
+            // Set flag in localStorage to tell dashboard to auto-launch this new workspace
             localStorage.setItem('auratral_just_deployed', order?.datasetId || 'AUR-EHR-101');
 
-            alert(`Compute Workspace provisioned successfully! ${total} credits debited from your pool. Redirecting to Dashboard.`);
+            // Try saving to Firestore asynchronously (non-blocking)
+            addDoc(collection(db, 'purchases'), workspaceData).catch(dbErr => {
+                console.warn("Firestore save failed, running in local-only storage fallback:", dbErr);
+            });
+
             navigate('/dashboard');
-        } catch (fsErr) {
-            console.error("Firestore error while saving workspace:", fsErr);
-            alert("Could not provision workspace database entry, but credits were debited. Please contact support.");
-            navigate('/dashboard');
+        } catch (err) {
+            console.error("Error during deployment:", err);
+            alert("Could not provision workspace. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -705,12 +711,14 @@ export const Checkout = () => {
                                     const newBal = balance + 5000;
                                     setBalance(newBal);
                                     localStorage.setItem('auratral_credits_balance', String(newBal));
+                                    window.dispatchEvent(new Event('auratral_credits_updated'));
                                 }}
                                 className="w-full btn btn-outline border-purple-500/50 hover:bg-purple-500/10 text-purple-400 py-4 font-bold flex justify-center items-center gap-2"
                             >
                                 Buy Credit Package (+5,000 Credits / ₹50,000)
                             </button>
                         )}
+
                         <p className="text-[10px] text-center text-slate-500">Security audited by Auratral Compliance & Privacy Committee</p>
                     </div>
                 </div>

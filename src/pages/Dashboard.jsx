@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Database, Key, CreditCard, Activity, ArrowRight, Download, Settings, FileText, File, X, Plus, Check, AlertCircle, Eye, Sliders, Play, Code, Terminal, FileCode, RotateCcw } from 'lucide-react';
+import { Database, Key, CreditCard, Activity, ArrowRight, Download, Settings, FileText, File, X, Plus, Check, AlertCircle, Eye, Sliders, Play, Code, Terminal, FileCode, RotateCcw, Cpu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DATASET_REGISTRY as fallbackRegistry } from '../utils/computeHelpers';
+import Editor from '@monaco-editor/react';
 
 /* ═══════════════════════════════════════════════════════════════
    SIMULATED CLINICAL DATA PREVIEWS
@@ -215,6 +216,7 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
     const [terminalLogs, setTerminalLogs] = useState([]);
     const [generatedOutputs, setGeneratedOutputs] = useState([]);
     const [showSampleTab, setShowSampleTab] = useState(true);
+    const [sessionBurned, setSessionBurned] = useState(0);
 
     const scripts = {
         'explore_data.py': `# Explore dataset variables and properties\nimport pandas as pd\n\n# Load clinical cohort records\ndf = pd.read_parquet('/data/sensitive_records.parquet')\n\nprint("Dataset Shape:", df.shape)\nprint("\\nClinical Features Profile:")\nprint(df.columns.tolist())\nprint(df.describe())`,
@@ -270,6 +272,7 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                                     `[Auratral Billing] Session consumed 2 Compute Credits (1 minute standard CPU run).`
                                 ]);
                                 onDeductCredits(2);
+                                setSessionBurned(prev => prev + 2);
                             } else if (selectedScript === 'train_model.py') {
                                 setTerminalLogs(prev => [
                                     ...prev,
@@ -289,6 +292,7 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                                     { name: 'trained_model.pkl', type: 'binary', content: 'Trained model weights dictionary - pickle serialized.' }
                                 ]);
                                 onDeductCredits(6);
+                                setSessionBurned(prev => prev + 6);
                             } else {
                                 setTerminalLogs(prev => [
                                     ...prev,
@@ -306,6 +310,7 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                                     { name: 'auc_roc_curve.png', type: 'image', content: 'ROC Curve visual output' }
                                 ]);
                                 onDeductCredits(4);
+                                setSessionBurned(prev => prev + 4);
                             }
                             setRunning(false);
                         }, 500);
@@ -345,7 +350,7 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                     <h2 className="text-xl font-bold text-primary flex items-center gap-2">
                         <Cpu className="text-purple-400" size={20} /> Sandboxed Compute IDE Workspace
                     </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">Active Workspace ID: <span className="font-mono text-slate-300">{workspace.id}</span> • Machine: <span className="text-purple-400 font-semibold">{workspace.instanceTier}</span></p>
+                    <p className="text-xs text-slate-400 mt-0.5">Active Workspace ID: <span className="font-mono text-slate-300">{workspace.id}</span> • Machine: <span className="text-purple-400 font-semibold">{workspace.instanceTier}</span> • <span className="text-pink-400 font-bold">Session Burned: {sessionBurned} Cr</span></p>
                 </div>
                 <button onClick={onClose} className="btn btn-outline py-1.5 px-4 text-xs">
                     Exit Sandbox
@@ -387,6 +392,33 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 space-y-4">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <Activity size={13} className="text-pink-400 animate-pulse" /> Compute Session Billing
+                        </h4>
+                        <div className="space-y-3 font-sans text-xs">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500">Session Burned:</span>
+                                <span className="text-pink-400 font-bold font-mono text-sm">{sessionBurned} Cr</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500">Instance Rate:</span>
+                                <span className="text-slate-300 font-semibold">{workspace.computeCreditRate || 2} Cr/min</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-500">Execution Status:</span>
+                                <span className={`flex items-center gap-1 font-semibold ${running ? 'text-amber-400' : 'text-green-400'}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${running ? 'bg-amber-400 animate-ping' : 'bg-green-400 animate-pulse'}`}></span>
+                                    {running ? 'Computing...' : 'Idle (Active)'}
+                                </span>
+                            </div>
+                            <div className="border-t border-slate-800/80 pt-2 flex justify-between items-center text-[10px]">
+                                <span className="text-slate-500">Current Balance:</span>
+                                <span className="text-slate-300 font-mono font-semibold">{(localStorage.getItem('auratral_credits_balance') || 12500)} Cr</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Center Panel: Code & Data Preview tabs */}
@@ -409,11 +441,40 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                             </button>
                         </div>
                         
-                        <textarea
+                        <Editor
+                            height="280px"
+                            defaultLanguage="python"
+                            theme="auratral-dark"
                             value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            className="w-full h-64 bg-slate-950 p-4 font-mono text-xs text-emerald-400 border-none outline-none resize-none focus:ring-0"
-                            placeholder="Write python script here..."
+                            onChange={(val) => setCode(val || '')}
+                            beforeMount={(monaco) => {
+                                monaco.editor.defineTheme('auratral-dark', {
+                                    base: 'vs-dark',
+                                    inherit: true,
+                                    rules: [
+                                        { token: 'comment', foreground: '6a737d', fontStyle: 'italic' },
+                                        { token: 'keyword', foreground: 'c792ea' },
+                                        { token: 'string', foreground: 'c3e88d' },
+                                        { token: 'number', foreground: 'f78c6c' },
+                                    ],
+                                    colors: {
+                                        'editor.background': '#030712',
+                                        'editor.lineHighlightBackground': '#111827',
+                                        'editorLineNumber.foreground': '#4b5563',
+                                        'editorLineNumber.activeForeground': '#a855f7',
+                                    }
+                                });
+                            }}
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: 12,
+                                lineNumbers: 'on',
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true,
+                                fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                padding: { top: 12, bottom: 12 },
+                                renderLineHighlight: 'all',
+                            }}
                         />
                     </div>
 
@@ -566,9 +627,19 @@ const Dashboard = () => {
         setCredits(prev => {
             const next = Math.max(0, prev - amt);
             localStorage.setItem('auratral_credits_balance', String(next));
+            window.dispatchEvent(new Event('auratral_credits_updated'));
             return next;
         });
     };
+
+    useEffect(() => {
+        const handleCreditsUpdate = () => {
+            const localBal = localStorage.getItem('auratral_credits_balance');
+            setCredits(localBal ? Number(localBal) : 12500);
+        };
+        window.addEventListener('auratral_credits_updated', handleCreditsUpdate);
+        return () => window.removeEventListener('auratral_credits_updated', handleCreditsUpdate);
+    }, []);
 
     // User details
     const user = {
@@ -584,6 +655,25 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchPurchases = async () => {
             if (!authUser) return;
+
+            // Load local purchases from localStorage immediately
+            const localPurchases = JSON.parse(localStorage.getItem('auratral_local_purchases') || '[]');
+            const localMapped = localPurchases.map(data => ({
+                id: data.datasetId,
+                name: data.datasetName,
+                category: data.category,
+                access: '1-Year Sandboxed Compute License',
+                price: data.price || 1237,
+                envType: data.envType || 'Python 3.10 (SciPy/Pandas)',
+                instanceTier: data.instanceTier || 'Standard CPU',
+                cohortFilters: data.cohortFilters || { districts: 'All Districts', region: 'All Regions', ageRange: '18 - 85', gender: 'Balanced (50-50)' },
+                status: data.status || 'Active',
+                expiry: new Date(new Date(data.purchaseDate).setFullYear(new Date(data.purchaseDate).getFullYear() + 1)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                license: data.license || '1-Year Sandboxed Compute License',
+                doi: data.doi,
+                purchaseDate: data.purchaseDate
+            }));
+
             try {
                 const q = query(collection(db, 'purchases'), where('userId', '==', authUser.uid));
                 const snapshot = await getDocs(q);
@@ -606,16 +696,38 @@ const Dashboard = () => {
                         purchaseDate: data.purchaseDate
                     });
                 });
-                fetched.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
-                setPurchases(fetched);
+
+                // Merge database and localStorage purchases, deduplicating by ID and purchaseDate
+                const merged = [...fetched];
+                localMapped.forEach(lp => {
+                    if (!merged.some(m => m.id === lp.id && m.purchaseDate === lp.purchaseDate)) {
+                        merged.push(lp);
+                    }
+                });
+
+                merged.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+                setPurchases(merged);
             } catch (err) {
-                console.error("Error fetching purchases: ", err);
+                console.error("Error fetching purchases, using local storage fallback: ", err);
+                setPurchases(localMapped.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)));
             } finally {
                 setLoadingPurchases(false);
             }
         };
         fetchPurchases();
     }, [authUser]);
+
+    // Auto-launch the sandbox immediately after purchase
+    useEffect(() => {
+        const justDeployedId = localStorage.getItem('auratral_just_deployed');
+        if (justDeployedId && purchases.length > 0) {
+            const match = purchases.find(p => p.id === justDeployedId);
+            if (match) {
+                setSelectedWorkspace(match);
+                localStorage.removeItem('auratral_just_deployed');
+            }
+        }
+    }, [purchases]);
 
     const activeDatasets = purchases;
 
@@ -779,6 +891,7 @@ const Dashboard = () => {
                                             const newBal = credits + 2000;
                                             setCredits(newBal);
                                             localStorage.setItem('auratral_credits_balance', String(newBal));
+                                            window.dispatchEvent(new Event('auratral_credits_updated'));
                                             alert("Added 2,000 Credits to your mock sandbox pool!");
                                         }}
                                         className="text-pink-400 hover:underline hover:text-pink-300 font-bold ml-1.5"

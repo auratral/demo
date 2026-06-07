@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShieldCheck, ChevronDown, LogOut, Image as ImageIcon, Menu, X } from 'lucide-react';
+import { Search, ChevronDown, LogOut, Image as ImageIcon, Menu, X, Coins } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
@@ -11,6 +11,52 @@ const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const [credits, setCredits] = useState(() => {
+        const localBal = localStorage.getItem('auratral_credits_balance');
+        return localBal ? Number(localBal) : 12500;
+    });
+
+    const [creditsOpen, setCreditsOpen] = useState(false);
+    const [creditsHistory, setCreditsHistory] = useState([]);
+
+    useEffect(() => {
+        const handleCreditsUpdate = () => {
+            const localBal = localStorage.getItem('auratral_credits_balance');
+            setCredits(localBal ? Number(localBal) : 12500);
+        };
+        window.addEventListener('auratral_credits_updated', handleCreditsUpdate);
+        window.addEventListener('storage', handleCreditsUpdate);
+        return () => {
+            window.removeEventListener('auratral_credits_updated', handleCreditsUpdate);
+            window.removeEventListener('storage', handleCreditsUpdate);
+        };
+    }, []);
+
+    useEffect(() => {
+        const loadHistory = () => {
+            const historyStr = localStorage.getItem('auratral_credits_history');
+            if (historyStr) {
+                setCreditsHistory(JSON.parse(historyStr));
+            } else {
+                const initialHistory = [
+                    { id: 1, date: 'Jun 07, 2026', type: 'debit', desc: 'RandomForest execution (train_model.py)', amount: 6 },
+                    { id: 2, date: 'Jun 07, 2026', type: 'debit', desc: 'Exploratory data analysis (explore_data.py)', amount: 2 },
+                    { id: 3, date: 'Jun 06, 2026', type: 'debit', desc: 'Longitudinal ICU Encounters Sandbox Activation', amount: 1237 },
+                    { id: 4, date: 'Jun 05, 2026', type: 'credit', desc: 'Credit Pack Top Up (Development Mode)', amount: 12500 }
+                ];
+                localStorage.setItem('auratral_credits_history', JSON.stringify(initialHistory));
+                setCreditsHistory(initialHistory);
+            }
+        };
+        loadHistory();
+        window.addEventListener('auratral_credits_updated', loadHistory);
+        window.addEventListener('storage', loadHistory);
+        return () => {
+            window.removeEventListener('auratral_credits_updated', loadHistory);
+            window.removeEventListener('storage', loadHistory);
+        };
+    }, []);
 
     const handleSearchKeyDown = (e) => {
         if (e.key === 'Enter' && searchTerm.trim()) {
@@ -115,18 +161,72 @@ const Navbar = () => {
                     />
                 </div>
 
-                {/* Desktop Compliance Badges */}
-                <div className="navbar-compliance hidden xl:flex">
-                    <ShieldCheck size={16} className="text-blue-400" />
-                    <span>HIPAA / GDPR / DPDP Ready</span>
-                </div>
+
 
                 {/* CTAs & Profile (Desktop + Mobile) */}
                 <div className="navbar-actions flex items-center gap-2 md:gap-4 shrink-0">
+                    {user && (
+                        <div className="relative z-50">
+                            <button
+                                onClick={() => { setCreditsOpen(!creditsOpen); setMenuOpen(false); }}
+                                className="flex items-center gap-1.5 bg-slate-800/60 hover:bg-slate-700/60 border border-purple-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-purple-400 select-none transition-all cursor-pointer"
+                            >
+                                <Coins size={12} className="text-purple-400" />
+                                <span>{credits.toLocaleString()} Cr</span>
+                                <ChevronDown size={10} className="text-purple-400" />
+                            </button>
+
+                            {/* Credits Dropdown */}
+                            {creditsOpen && (
+                                <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-50 text-left font-sans">
+                                    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
+                                        <div>
+                                            <div className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Compute Credits</div>
+                                            <div className="text-base font-extrabold text-primary mt-0.5">{credits.toLocaleString()} Cr</div>
+                                        </div>
+                                        <button 
+                                            onClick={() => { setCreditsOpen(false); navigate('/buy-credits'); }}
+                                            className="btn btn-primary text-[10px] py-1.5 px-3 font-semibold flex items-center gap-1"
+                                        >
+                                            Buy Credits
+                                        </button>
+                                    </div>
+
+                                    {/* History list */}
+                                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-800/60 p-2">
+                                        <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider p-2">Recent Transactions</div>
+                                        {creditsHistory.length === 0 ? (
+                                            <div className="text-xs text-slate-500 italic p-3 text-center">No transaction history.</div>
+                                        ) : (
+                                            creditsHistory.slice(0, 5).map(tx => (
+                                                <div key={tx.id} className="p-2 hover:bg-slate-800/30 rounded-lg flex justify-between items-start text-xs gap-3">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="font-semibold text-slate-200 leading-tight truncate">{tx.desc}</div>
+                                                        <div className="text-[10px] text-slate-500 mt-1">{tx.date}</div>
+                                                    </div>
+                                                    <span className={`font-mono font-bold shrink-0 ${tx.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
+                                                        {tx.type === 'credit' ? '+' : '-'}{tx.amount.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="p-2 border-t border-slate-800/85 bg-slate-950/20 text-center">
+                                        <button 
+                                            onClick={() => { setCreditsOpen(false); navigate('/buy-credits'); }}
+                                            className="text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition-colors py-1 block w-full text-center cursor-pointer"
+                                        >
+                                            View Full Billing Page
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {user ? (
                         <div className="relative z-50">
                             <button
-                                onClick={() => setMenuOpen(!menuOpen)}
+                                onClick={() => { setMenuOpen(!menuOpen); setCreditsOpen(false); }}
                                 className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 p-1.5 pr-2 md:pr-3 rounded-full transition-all"
                             >
                                 <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full border border-slate-600 bg-black/20 object-cover" />
@@ -213,10 +313,7 @@ const Navbar = () => {
                         </div>
                     )}
 
-                    <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <ShieldCheck size={16} className="text-blue-400" />
-                        <span className="text-xs font-semibold text-blue-300">HIPAA / GDPR / DPDP Ready</span>
-                    </div>
+
                 </div>
             )}
             

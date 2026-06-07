@@ -28,6 +28,7 @@ import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 import Pricing from './pages/Pricing';
+import BuyCredits from './pages/BuyCredits';
 
 function App() {
     const { scrollY } = useScroll();
@@ -135,6 +136,11 @@ function App() {
                             <Route path="/news" element={<News />} />
                             <Route path="/news/:id" element={<NewsArticle />} />
                             <Route path="/pricing" element={<Pricing />} />
+                            <Route path="/buy-credits" element={
+                                <ProtectedRoute allowedRoles={['consumer']}>
+                                    <BuyCredits />
+                                </ProtectedRoute>
+                            } />
 
                             {/* Authentication & Dashboard */}
                             <Route path="/login" element={<Login />} />
