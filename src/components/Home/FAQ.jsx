@@ -8,15 +8,15 @@ const FAQS = [
         items: [
             {
                 q: 'What is Auratral?',
-                a: 'Auratral is a B2B medical data marketplace that curates, de-identifies, and licenses premium healthcare datasets for AI research, clinical analysis, and enterprise use. Every dataset ships with a Data Use Agreement, compliance documentation, and Auratral\'s Quality Score guarantee.',
+                a: 'Auratral is a secure, B2B Compute-to-Data clinical hosting platform. Researchers spin up isolated sandbox runtimes with built-in code editors to train models and execute clinical simulations directly next to de-identified healthcare data, maintaining strict privacy compliance.',
             },
             {
                 q: 'Who are the datasets meant for?',
-                a: 'Auratral serves three buyer types: Students & Research Scholars who need affordable single-dataset access for their work; Universities & Research Institutes requiring annual catalog subscriptions across departments; and Enterprise organisations such as health-tech firms, pharma companies, and AI labs that need bulk access, custom pipelines, and commercial licenses.',
+                a: 'Auratral serves AI researchers, clinical data scientists, and healthcare developers across academic institutions, universities, and enterprise research divisions (like pharmaceutical or health-tech labs) who need secure access to run model training and statistical analysis without navigating lengthy, high-risk data-sharing agreements.',
             },
             {
                 q: 'Are all datasets real patient data?',
-                a: 'All datasets are sourced from real-world clinical environments and then rigorously de-identified following HIPAA Safe Harbor and GDPR Article 9 standards before being listed. What you purchase is a research-ready, anonymised extract — not raw patient records.',
+                a: 'Yes. All datasets are sourced from real-world clinical environments and rigorously de-identified following HIPAA Safe Harbor and GDPR Article 9 standards. You interact with and analyze these de-identified datasets within a secure sandbox environment.',
             },
         ],
     },
@@ -25,19 +25,19 @@ const FAQS = [
         items: [
             {
                 q: 'How do I access a dataset after purchase?',
-                a: 'After completing the checkout and signing the Data Use Agreement, your dataset is delivered to the secure download portal in your dashboard within 24 hours. You can also request API or Docker delivery as add-ons during configuration.',
+                a: 'Once you allocate compute credits and sign the isolated execution agreement, your workspace is provisioned instantly. You can launch your sandboxed IDE from your dashboard immediately to start writing scripts, training models, and executing queries.',
             },
             {
                 q: 'Can I preview a dataset before buying?',
-                a: 'Yes. Every dataset page shows a free 5-row de-identified sample and full column statistics. For select datasets (EHR/ICU, Mental Health, Diabetes), verified registered users can request up to 10 records via a research intent form.',
+                a: 'Yes. Every dataset page displays a 5-row de-identified preview showing schema structure, data types, and full column-level statistics. You can inspect these fields and preview columns before allocating credits to start a full runtime sandbox.',
             },
             {
                 q: 'What formats are the datasets available in?',
-                a: 'Datasets are available in CSV, JSON, Excel, FHIR R4, and Apache Parquet. The base purchase includes one format; additional formats can be added via the Format Conversion add-on (₹3,500 per format).',
+                a: 'Datasets are pre-mounted inside your sandboxed workspace container, typically as high-performance Parquet or CSV files. You can load them directly inside your workspace scripts using standard Python (Pandas/Polars) or R data-frame utilities.',
             },
             {
                 q: 'Can I request a custom dataset that isn\'t listed?',
-                a: 'Yes — visit the Custom Request page to describe your cohort requirements. Our data team will review the feasibility, source the data, and provide a quote within 5 business days.',
+                a: 'Yes. Visit the Custom Request page to describe your clinical cohort criteria. Our data operations team will check feasibility with provider partners, package the cohort under a de-identified policy, and notify you when the custom workspace is ready to be loaded.',
             },
         ],
     },
@@ -46,15 +46,15 @@ const FAQS = [
         items: [
             {
                 q: 'Is the data HIPAA and GDPR compliant?',
-                a: 'Yes. Every dataset is processed under HIPAA Safe Harbor de-identification, GDPR Article 9 special-category data standards, and India\'s DPDP Act requirements. Compliance certificates are included with every purchase.',
+                a: 'Yes. Our platform operates on a zero-export philosophy where you only download training weights, metrics, and logs. This enforces complete compliance with HIPAA Safe Harbor, GDPR Article 9, and India\'s DPDP Act.',
             },
             {
                 q: 'What is a Data Use Agreement (DUA)?',
-                a: 'A DUA is a legally binding contract that specifies exactly how you may use the dataset — permitted research uses, commercial restrictions, publication rights, data retention limits, and breach reporting duties. It is signed digitally during the checkout process and stored permanently in your account.',
+                a: 'On Auratral, the DUA is a Compute Isolation NDA. It is a legally binding contract signed digitally before launching a sandbox. It governs permitted research intents, prohibits attempts at patient re-identification, and enforces zero-export rules, ensuring that only aggregated statistical reports and model checkpoints are extracted.',
             },
             {
                 q: 'Can I use a purchased dataset to train an AI model?',
-                a: 'AI and ML training is a core supported use case on Auratral — it\'s the reason most buyers are here. All license types include the right to train models. Commercial deployment of trained models falls under the Commercial Analytics or OEM license and may have price multipliers.',
+                a: 'Yes. Training AI/ML models is the primary use case. You can execute training loops using frameworks like PyTorch or TensorFlow directly inside our high-performance GPU/CPU clusters. Once training is complete, you can download your final model weights (e.g., `.pkl`, `.onnx` files) and validation metrics.',
             },
         ],
     },
@@ -63,15 +63,15 @@ const FAQS = [
         items: [
             {
                 q: 'How is pricing structured?',
-                a: 'Pricing depends on your tier: Students / Researchers pay per dataset with no subscription; Universities pay an annual catalog fee based on institution size (₹3,60,000 – ₹13,50,000/yr); Enterprise contracts are bespoke. See the full breakdown on the Pricing page.',
+                a: 'Pricing is based on Compute Credits, where 1 Credit = ₹10. You allocate credits to purchase annual workspace licenses (e.g., 1,237 Cr/year) and cover runtime compute usage (e.g., 2 Cr/minute for CPU runtimes, higher for GPU runtimes).',
             },
             {
                 q: 'Is there a discount for .edu email addresses?',
-                a: 'Independent researchers (not affiliated with a purchasing university) can get up to 10% off at checkout by verifying a .edu email address. This applies to the Academic Non-Commercial license.',
+                a: 'Yes. Verified academic researchers signing up with a .edu email address receive complimentary starter credits to set up their first sandboxed environment and run exploratory data scripts.',
             },
             {
                 q: 'What payment methods are supported?',
-                a: 'Payments are processed via Stripe and support all major credit/debit cards, UPI, and net banking for INR transactions. Enterprise invoicing and purchase-order workflows are available on request.',
+                a: 'We accept all major credit/debit cards, UPI, and net banking for credit top-ups. For larger research labs and enterprise accounts, we support invoicing, purchase-order workflows, and corporate credit line setups.',
             },
         ],
     },
