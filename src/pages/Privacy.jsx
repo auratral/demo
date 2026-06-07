@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, EyeOff, ClipboardCheck, ScrollText, ArrowLeft, ShieldCheck, Lock, Activity } from 'lucide-react';
+import { Shield, EyeOff, ClipboardCheck, ScrollText, ArrowLeft, ShieldCheck, Lock, Activity, Users, FileKey, CheckSquare, Heart } from 'lucide-react';
 
 const Privacy = () => {
     const navigate = useNavigate();
 
     return (
         <div className="pt-32 pb-24 min-h-screen font-sans text-white relative">
-            <div className="container mx-auto px-8 max-w-4xl relative">
+            <div className="container mx-auto px-8 max-w-5xl relative">
                 {/* Back button */}
                 <button 
                     onClick={() => navigate(-1)} 
@@ -19,89 +19,187 @@ const Privacy = () => {
                 {/* Hero Header */}
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-400 mb-6">
-                        <Shield size={13} className="text-blue-400" /> Secure Clinical Dataspace
+                        <Shield size={13} className="text-blue-400" /> Secure Clinical Governance
                     </div>
                     <h1 className="text-4xl font-extrabold text-primary mb-4">
-                        Privacy & Security <span className="text-gradient">Framework</span>
+                        Privacy & Security <span className="text-gradient">Protocol</span>
                     </h1>
-                    <p className="text-slate-400 max-w-xl mx-auto text-sm leading-relaxed">
-                        Auratral enforces a strict zero-export architecture designed to protect sensitive patient records while enabling advanced medical AI research.
+                    <p className="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
+                        A comprehensive breakdown of our Compute-to-Data sandboxing rules, IRB/IEC compliance, ethics declarations, and user profile data protection.
                     </p>
                 </div>
 
-                {/* Core Privacy Pillars Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                    <div className="glass-panel p-6 border border-slate-700/40 hover:border-blue-500/30 transition-all duration-300">
-                        <div className="w-10 h-10 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-                            <EyeOff size={20} className="text-blue-400" />
+                {/* Main 2-Column Grid Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-12">
+                    
+                    {/* Left Column: Quick Navigation / Core Pillars Summary */}
+                    <div className="space-y-6 lg:col-span-1">
+                        <div className="glass-panel p-6 border border-slate-700/40 bg-slate-900/20">
+                            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Governance Summary</h3>
+                            <ul className="space-y-3.5 text-xs text-slate-400">
+                                <li className="flex items-center gap-2">
+                                    <ShieldCheck size={14} className="text-blue-400 shrink-0" />
+                                    <span>Zero-Export Compute Isolation</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <Lock size={14} className="text-purple-400 shrink-0" />
+                                    <span>IRB / IEC Ethical Clearance</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <Heart size={14} className="text-pink-400 shrink-0" />
+                                    <span>Ethics & Non-Reidentification</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <Users size={14} className="text-green-400 shrink-0" />
+                                    <span>Researcher Profile Encryption</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <FileKey size={14} className="text-indigo-400 shrink-0" />
+                                    <span>Encrypted Document Buckets</span>
+                                </li>
+                            </ul>
                         </div>
-                        <h3 className="text-base font-bold text-slate-200 mb-2">Zero-Export Custody</h3>
-                        <p className="text-xs text-slate-400 leading-relaxed">
-                            Raw patient datasets are permanently isolated inside provider-hosted environments. Researchers write and execute scripts within secure sandbox runtimes and can only export final weights, model parameters, and statistical validation metrics.
-                        </p>
-                    </div>
 
-                    <div className="glass-panel p-6 border border-slate-700/40 hover:border-purple-500/30 transition-all duration-300">
-                        <div className="w-10 h-10 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center mb-4">
-                            <ClipboardCheck size={20} className="text-purple-400" />
+                        {/* Security Note */}
+                        <div className="glass-panel p-6 border border-blue-500/10 bg-blue-500/5 rounded-2xl">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Lock size={14} className="text-blue-400" />
+                                <h4 className="text-xs font-bold text-blue-300 uppercase tracking-wider">Zero Data-Out</h4>
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-relaxed">
+                                Under our strict Compute-to-Data architecture, raw patient data is hosted in network-isolated read-only vaults. Outputs are programmatically scanned to ensure zero patient level records escape the sandbox environment.
+                            </p>
                         </div>
-                        <h3 className="text-base font-bold text-slate-200 mb-2">Rigorous De-Identification</h3>
-                        <p className="text-xs text-slate-400 leading-relaxed">
-                            All mounted datasets undergo certified pipeline sweeps to scrub protected health information (PHI) in compliance with HIPAA Safe Harbor criteria, GDPR Article 9 special-category definitions, and the India DPDP Act.
-                        </p>
                     </div>
 
-                    <div className="glass-panel p-6 border border-slate-700/40 hover:border-green-500/30 transition-all duration-300">
-                        <div className="w-10 h-10 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                            <Activity size={20} className="text-green-400" />
+                    {/* Right Column: Detailed Clauses */}
+                    <div className="space-y-8 lg:col-span-2">
+                        
+                        {/* Section 1: Compute-to-Data Security Agreement */}
+                        <div className="glass-panel p-8 border border-slate-700/40 space-y-6">
+                            <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <Shield size={18} className="text-blue-400" />
+                                1. Compute-to-Data Security Agreement
+                            </h2>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Researchers executing workflows on Auratral operate under the Compute-to-Data Security Agreement, which enforces specific operational constraints:
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                                    <h4 className="text-xs font-semibold text-slate-300 mb-1">Read-Only Mounting</h4>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        Clinical datasets are mounted into your workspace as read-only volumes. Raw databases cannot be modified, deleted, or overwritten by workspace processes.
+                                    </p>
+                                </div>
+                                <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                                    <h4 className="text-xs font-semibold text-slate-300 mb-1">Network Outbound Block</h4>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        Running sandboxes exist in highly secure VPCs with outbound internet traffic blocked to prevent unauthorised clinical transmissions.
+                                    </p>
+                                </div>
+                                <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                                    <h4 className="text-xs font-semibold text-slate-300 mb-1">Model Weight Scanning</h4>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        All exportable model weights (e.g. `.pkl`, `.onnx` files) undergo automated reconstruction audits to detect membership inference leaks.
+                                    </p>
+                                </div>
+                                <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800/80">
+                                    <h4 className="text-xs font-semibold text-slate-300 mb-1">Inactivity Teardowns</h4>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        Containers automatically detach clinical volumes and dismount workspaces after 30 minutes of idle session inactivity to secure data.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <h3 className="text-base font-bold text-slate-200 mb-2">Immutable Session Logging</h3>
-                        <p className="text-xs text-slate-400 leading-relaxed">
-                            Every compute container session is cryptographically logged. Code executions, CPU/GPU utilisation, and runtime metrics are audited automatically to verify research intent and prevent data reconstruction attempts.
-                        </p>
-                    </div>
 
-                    <div className="glass-panel p-6 border border-slate-700/40 hover:border-indigo-500/30 transition-all duration-300">
-                        <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center mb-4">
-                            <ScrollText size={20} className="text-indigo-400" />
+                        {/* Section 2: IRB / IEC Governance & DUA */}
+                        <div className="glass-panel p-8 border border-slate-700/40 space-y-4">
+                            <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <ScrollText size={18} className="text-purple-400" />
+                                2. IRB / IEC Protocol & DUA Governance
+                            </h2>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Every project accessing medical sandboxes must obtain institutional clearances prior to credentials release:
+                            </p>
+                            <ul className="space-y-3 pl-2 text-xs text-slate-400">
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Protocol Verification:</strong> Institutional Review Boards (IRB) or Ethics Committees (IEC) must review the research intent, and users must input approved protocol numbers during workspace configuration.</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Data Use Agreement (DUA):</strong> Digitally signed DUAs hold the user's sponsoring institution contractually accountable to ethical clinical execution.</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Scope Limitations:</strong> Runtimes are locked to the specific parameters declared in the approved IRB protocol (e.g. target cohort metrics, demographics filters).</span>
+                                </li>
+                            </ul>
                         </div>
-                        <h3 className="text-base font-bold text-slate-200 mb-2">Ethics & DUA Auditing</h3>
-                        <p className="text-xs text-slate-400 leading-relaxed">
-                            Sandbox access is strictly gated by digitally signed Data Use Agreements (DUAs) and institutional credentials. Workspaces require predefined research project authorization before credentials are provisioned.
-                        </p>
-                    </div>
-                </div>
 
-                {/* Detailed Framework Terms */}
-                <div className="glass-panel p-8 border border-slate-700/40 space-y-8 mb-12">
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-200 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-4 bg-blue-500 rounded-full inline-block"></span>
-                            1. Data Access & Compute Isolation
-                        </h2>
-                        <p className="text-xs text-slate-400 leading-relaxed pl-3.5">
-                            Access to clinical datasets is granted only via authenticated workspace containers. Direct file downloading, database mirroring, or external network calls from within the running sandbox are programmatically blocked by internal routing policies.
-                        </p>
-                    </div>
+                        {/* Section 3: Ethics Declarations */}
+                        <div className="glass-panel p-8 border border-slate-700/40 space-y-4">
+                            <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <Heart size={18} className="text-pink-400" />
+                                3. Ethics Declarations
+                            </h2>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Researchers are bound by ethical declarations governing patient dignity and research integrity:
+                            </p>
+                            <ul className="space-y-3 pl-2 text-xs text-slate-400">
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-pink-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>No Re-identification Attempts:</strong> Any attempt to link, correlate, or re-identify anonymised patient records or clinical encounter identifiers is strictly prohibited and results in immediate access revocation.</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-pink-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Non-Malicious Scripting:</strong> Code running inside the Monaco Editor workspace sandbox must solely serve diagnostic, analytical, or generative AI purposes. Scanning runtimes or copying file segments out of context is flagged as suspicious.</span>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-200 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-4 bg-purple-500 rounded-full inline-block"></span>
-                            2. Non-Reidentification Guarantee
-                        </h2>
-                        <p className="text-xs text-slate-400 leading-relaxed pl-3.5">
-                            Under our Terms of Service and signed DUAs, users agree not to attempt, assist in, or execute any re-identification techniques (such as linkage attacks or demographic intersection mapping) against the de-identified datasets hosted in the runtime environment.
-                        </p>
-                    </div>
+                        {/* Section 4: User Profile & Details Privacy */}
+                        <div className="glass-panel p-8 border border-slate-700/40 space-y-4">
+                            <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <Users size={18} className="text-green-400" />
+                                4. User Profile & Account Details Privacy
+                            </h2>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Sponsoring researcher profiles, identity verification files, and billing information are secured using high-grade encryption:
+                            </p>
+                            <ul className="space-y-3 pl-2 text-xs text-slate-400">
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Credential Encryption:</strong> Sponsoring institution details, researcher avatars, credentials, and passwords are encrypted in transit (TLS 1.3) and at rest (AES-256).</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>No Third-Party Access:</strong> Sponsoring profiles and academic affiliations are never sold, shared, or shared with commercial entities.</span>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-200 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-4 bg-green-500 rounded-full inline-block"></span>
-                            3. Export Controls & Aggregated Output
-                        </h2>
-                        <p className="text-xs text-slate-400 leading-relaxed pl-3.5">
-                            Only statistical digests, confusion matrices, evaluation metrics, and final machine learning model weights can be packaged and downloaded from the sandbox environment. Automated filters scan outgoing file downloads to ensure raw data fragments are not accidentally leaked.
-                        </p>
+                        {/* Section 5: IRB / IEC Form & Document Privacy */}
+                        <div className="glass-panel p-8 border border-slate-700/40 space-y-4">
+                            <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <FileKey size={18} className="text-indigo-400" />
+                                5. IRB / IEC Form & Document Privacy
+                            </h2>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Uploaded ethics approvals, signed DUAs, and custom cohort forms are treated with the highest security protocol:
+                            </p>
+                            <ul className="space-y-3 pl-2 text-xs text-slate-400">
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Encrypted Object Vaults:</strong> All uploaded IRB protocols and ethics committee approval PDF forms are stored in isolated, access-restricted storage buckets.</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Auditor-Only Restrictions:</strong> Sourced IRB protocol document text and credentials metadata can only be read by authorized compliance officers during checkout reviews.</span>
+                                </li>
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
 
