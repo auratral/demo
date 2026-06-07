@@ -29,6 +29,7 @@ import Dashboard from './pages/Dashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 import Pricing from './pages/Pricing';
 import BuyCredits from './pages/BuyCredits';
+import Privacy from './pages/Privacy';
 
 function App() {
     const { scrollY } = useScroll();
@@ -136,6 +137,7 @@ function App() {
                             <Route path="/news" element={<News />} />
                             <Route path="/news/:id" element={<NewsArticle />} />
                             <Route path="/pricing" element={<Pricing />} />
+                            <Route path="/legal/privacy" element={<Privacy />} />
                             <Route path="/buy-credits" element={
                                 <ProtectedRoute allowedRoles={['consumer']}>
                                     <BuyCredits />
