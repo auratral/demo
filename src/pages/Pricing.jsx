@@ -659,6 +659,11 @@ const Pricing = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Credit Policy Disclaimer */}
+                <div className="mt-8 text-center text-[10px] text-slate-500 tracking-wide font-medium">
+                    ⚠️ Note: All allocated Compute Credits on the Auratral platform are non-transferable and non-reversible.
+                </div>
             </div>
         </div>
     );
