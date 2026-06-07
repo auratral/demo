@@ -162,19 +162,23 @@ const Privacy = () => {
                         <div className="glass-panel p-8 border border-slate-700/40 space-y-4">
                             <h2 className="text-lg font-bold text-slate-200 mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
                                 <Users size={18} className="text-green-400" />
-                                4. User Profile & Account Details Privacy
+                                4. User Profile & Customer Details Privacy
                             </h2>
                             <p className="text-xs text-slate-400 leading-relaxed">
-                                Sponsoring researcher profiles, identity verification files, and billing information are secured using high-grade encryption:
+                                Sponsoring researcher profiles, customer transaction histories, and credential files are handled with strict privacy protocols:
                             </p>
                             <ul className="space-y-3 pl-2 text-xs text-slate-400">
                                 <li className="flex items-start gap-2.5">
                                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 shrink-0"></span>
-                                    <span><strong>Credential Encryption:</strong> Sponsoring institution details, researcher avatars, credentials, and passwords are encrypted in transit (TLS 1.3) and at rest (AES-256).</span>
+                                    <span><strong>Profile & Data Encryption:</strong> Customer account details, institutional affiliations, researcher names, and passwords are encrypted in transit (TLS 1.3) and at rest (AES-256).</span>
                                 </li>
                                 <li className="flex items-start gap-2.5">
                                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 shrink-0"></span>
-                                    <span><strong>No Third-Party Access:</strong> Sponsoring profiles and academic affiliations are never sold, shared, or shared with commercial entities.</span>
+                                    <span><strong>Billing Tokenization:</strong> Credit purchases are processed through secure billing handlers. Credit card data is fully tokenized and never stored directly on Auratral servers.</span>
+                                </li>
+                                <li className="flex items-start gap-2.5">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 shrink-0"></span>
+                                    <span><strong>Usage Privacy & No Selling:</strong> Account usage logs, credit balances, and dataset allocation histories are kept strictly confidential and are never shared or sold to advertising networks or third parties.</span>
                                 </li>
                             </ul>
                         </div>
