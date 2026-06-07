@@ -5,6 +5,7 @@ import {
     createUserWithEmailAndPassword, 
     signOut, 
     signInWithPopup, 
+    signInWithRedirect,
     GoogleAuthProvider, 
     GithubAuthProvider,
     updateProfile
@@ -34,10 +35,11 @@ export const AuthProvider = ({ children }) => {
             if (firebaseUser) {
                 const defaultName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
                 const localAvatar = localStorage.getItem(`avatar_${firebaseUser.uid}`);
+                const storedRole = localStorage.getItem('auth_selected_role') || 'consumer';
                 const fallbackProfile = {
                     name: defaultName,
                     email: firebaseUser.email || '',
-                    role: 'consumer',
+                    role: storedRole,
                     avatarUrl: localAvatar || firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=random`,
                     createdAt: new Date().toISOString()
                 };
@@ -64,6 +66,8 @@ export const AuthProvider = ({ children }) => {
                 } catch (error) {
                     console.error("Error fetching user profile from Firestore, using Auth details as fallback:", error);
                     setUser({ uid: firebaseUser.uid, ...fallbackProfile });
+                } finally {
+                    localStorage.removeItem('auth_selected_role');
                 }
             } else {
                 setUser(null);
@@ -106,71 +110,103 @@ export const AuthProvider = ({ children }) => {
     };
 
     const loginWithGoogle = async (role = 'consumer') => {
+        localStorage.setItem('auth_selected_role', role);
         const provider = new GoogleAuthProvider();
-        const userCredential = await signInWithPopup(auth, provider);
-        const firebaseUser = userCredential.user;
         
-        const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
-        const profile = {
-            name: displayName,
-            email: firebaseUser.email || '',
-            role,
-            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
-            createdAt: new Date().toISOString()
-        };
-        
-        try {
-            const docRef = doc(db, 'users', firebaseUser.uid);
-            const docSnap = await fetchDocWithTimeout(docRef, 1500);
-            
-            if (!docSnap.exists()) {
-                // Background write, non-blocking
-                setDoc(docRef, profile).catch((writeErr) => {
-                    console.warn("Google signup document write failed:", writeErr);
-                });
-                setUser({ uid: firebaseUser.uid, ...profile });
-            } else {
-                setUser({ uid: firebaseUser.uid, ...docSnap.data() });
-            }
-        } catch (dbErr) {
-            console.error("Firestore error in Google Sign-In, using Auth metadata fallback:", dbErr);
-            setUser({ uid: firebaseUser.uid, ...profile });
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            return signInWithRedirect(auth, provider);
         }
-        return userCredential;
+
+        try {
+            const userCredential = await signInWithPopup(auth, provider);
+            const firebaseUser = userCredential.user;
+            
+            const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+            const profile = {
+                name: displayName,
+                email: firebaseUser.email || '',
+                role,
+                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                const docRef = doc(db, 'users', firebaseUser.uid);
+                const docSnap = await fetchDocWithTimeout(docRef, 1500);
+                
+                if (!docSnap.exists()) {
+                    setDoc(docRef, profile).catch((writeErr) => {
+                        console.warn("Google signup document write failed:", writeErr);
+                    });
+                    setUser({ uid: firebaseUser.uid, ...profile });
+                } else {
+                    setUser({ uid: firebaseUser.uid, ...docSnap.data() });
+                }
+            } catch (dbErr) {
+                console.error("Firestore error in Google Sign-In, using Auth metadata fallback:", dbErr);
+                setUser({ uid: firebaseUser.uid, ...profile });
+            }
+            return userCredential;
+        } catch (popupErr) {
+            console.warn("Google signInWithPopup failed, falling back to signInWithRedirect:", popupErr);
+            if (popupErr.code === 'auth/popup-blocked' || 
+                popupErr.code === 'auth/cancelled-popup-request' ||
+                popupErr.code === 'auth/popup-closed-by-user') {
+                return signInWithRedirect(auth, provider);
+            }
+            throw popupErr;
+        }
     };
 
     const loginWithGithub = async (role = 'consumer') => {
+        localStorage.setItem('auth_selected_role', role);
         const provider = new GithubAuthProvider();
-        const userCredential = await signInWithPopup(auth, provider);
-        const firebaseUser = userCredential.user;
         
-        const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
-        const profile = {
-            name: displayName,
-            email: firebaseUser.email || '',
-            role,
-            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
-            createdAt: new Date().toISOString()
-        };
-        
-        try {
-            const docRef = doc(db, 'users', firebaseUser.uid);
-            const docSnap = await fetchDocWithTimeout(docRef, 1500);
-            
-            if (!docSnap.exists()) {
-                // Background write, non-blocking
-                setDoc(docRef, profile).catch((writeErr) => {
-                    console.warn("GitHub signup document write failed:", writeErr);
-                });
-                setUser({ uid: firebaseUser.uid, ...profile });
-            } else {
-                setUser({ uid: firebaseUser.uid, ...docSnap.data() });
-            }
-        } catch (dbErr) {
-            console.error("Firestore error in GitHub Sign-In, using Auth metadata fallback:", dbErr);
-            setUser({ uid: firebaseUser.uid, ...profile });
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            return signInWithRedirect(auth, provider);
         }
-        return userCredential;
+
+        try {
+            const userCredential = await signInWithPopup(auth, provider);
+            const firebaseUser = userCredential.user;
+            
+            const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+            const profile = {
+                name: displayName,
+                email: firebaseUser.email || '',
+                role,
+                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                const docRef = doc(db, 'users', firebaseUser.uid);
+                const docSnap = await fetchDocWithTimeout(docRef, 1500);
+                
+                if (!docSnap.exists()) {
+                    setDoc(docRef, profile).catch((writeErr) => {
+                        console.warn("GitHub signup document write failed:", writeErr);
+                    });
+                    setUser({ uid: firebaseUser.uid, ...profile });
+                } else {
+                    setUser({ uid: firebaseUser.uid, ...docSnap.data() });
+                }
+            } catch (dbErr) {
+                console.error("Firestore error in GitHub Sign-In, using Auth metadata fallback:", dbErr);
+                setUser({ uid: firebaseUser.uid, ...profile });
+            }
+            return userCredential;
+        } catch (popupErr) {
+            console.warn("GitHub signInWithPopup failed, falling back to signInWithRedirect:", popupErr);
+            if (popupErr.code === 'auth/popup-blocked' || 
+                popupErr.code === 'auth/cancelled-popup-request' ||
+                popupErr.code === 'auth/popup-closed-by-user') {
+                return signInWithRedirect(auth, provider);
+            }
+            throw popupErr;
+        }
     };
 
     const logout = () => {
