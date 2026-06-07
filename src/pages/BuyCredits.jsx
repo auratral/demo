@@ -117,7 +117,7 @@ const BuyCredits = () => {
 
     return (
         <div className="pt-32 pb-24 min-h-screen font-sans text-white relative">
-            <div className="container mx-auto px-8 max-w-5xl">
+            <div className="container mx-auto px-8 max-w-[1400px]">
                 {/* Back Link */}
                 <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors text-xs font-semibold mb-8">
                     <ArrowLeft size={14} /> Back to Dashboard

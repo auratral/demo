@@ -41,7 +41,7 @@ export const Customize = () => {
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
-            <div className="container mx-auto px-8 max-w-6xl">
+            <div className="container mx-auto px-8 max-w-[1600px]">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     {/* Left Column: Configuration */}
                     <div className="lg:col-span-2 space-y-10">
@@ -288,7 +288,7 @@ export const Agreement = () => {
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
-            <div className="container mx-auto px-8 max-w-4xl">
+            <div className="container mx-auto px-8 max-w-[1400px]">
                 <div className="flex items-center gap-3 mb-6 border-b border-glass-border pb-4">
                     <ShieldCheck size={32} className="text-purple-400" />
                     <h1 className="text-3xl font-bold text-primary">Compute-to-Data Security Agreement</h1>
@@ -377,7 +377,7 @@ export const IrbReview = () => {
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
-            <div className="container mx-auto px-8 max-w-4xl">
+            <div className="container mx-auto px-8 max-w-[1400px]">
 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6 border-b border-glass-border pb-4">
@@ -643,7 +643,7 @@ export const Checkout = () => {
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
-            <div className="container mx-auto px-8 max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="container mx-auto px-8 max-w-[1500px] grid grid-cols-1 md:grid-cols-2 gap-12">
 
                 <div>
                     <h1 className="text-3xl font-bold text-primary mb-2">Compute Credit Allocation</h1>

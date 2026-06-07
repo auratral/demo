@@ -25,7 +25,7 @@ const Footer = () => {
 
     return (
         <footer className="footer border-t border-glass-border">
-            <div className="container mx-auto px-8 max-w-7xl py-8">
+            <div className="container mx-auto px-8 max-w-[1600px] py-8">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
 
                     {/* Left: Brand & Copyright */}

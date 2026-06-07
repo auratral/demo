@@ -7,7 +7,7 @@ const Privacy = () => {
 
     return (
         <div className="pt-32 pb-24 min-h-screen font-sans text-white relative">
-            <div className="container mx-auto px-8 max-w-5xl relative">
+            <div className="container mx-auto px-8 max-w-[1600px] relative">
                 {/* Back button */}
                 <button 
                     onClick={() => navigate(-1)} 

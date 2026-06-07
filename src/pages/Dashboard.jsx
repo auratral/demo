@@ -771,7 +771,7 @@ const Dashboard = () => {
     if (selectedWorkspace) {
         return (
             <div className="pt-32 pb-16 min-h-screen">
-                <div className="container mx-auto px-8 max-w-7xl">
+                <div className="container mx-auto px-8 max-w-[1600px]">
                     <IDESandbox 
                         workspace={selectedWorkspace} 
                         onClose={() => setSelectedWorkspace(null)} 
@@ -784,7 +784,7 @@ const Dashboard = () => {
 
     return (
         <div className="pt-32 pb-16 min-h-screen">
-            <div className="container mx-auto px-8 max-w-7xl">
+            <div className="container mx-auto px-8 max-w-[1600px]">
 
                 {/* Notifications Panel */}
                 {notifications.length > 0 && (

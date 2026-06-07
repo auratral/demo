@@ -148,3 +148,10 @@ div[style*="unicorn.studio"],
     position: absolute !important;
     clip: rect(0, 0, 0, 0) !important;
 }
+
+/* Global container override to utilize more horizontal space on wide screens */
+@media (min-width: 1536px) {
+    .container {
+        max-width: 1600px !important;
+    }
+}
