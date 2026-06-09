@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, Newspaper, Activity, Database, HeartPulse } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { db } from '../../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const mainNews = {
     category: "AI in Indian Healthcare",
@@ -37,6 +39,37 @@ const newsArticles = [
 ];
 
 const LatestAINews = () => {
+    const [email, setEmail] = useState('');
+    const [subscribed, setSubscribed] = useState(false);
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+        
+        const newSubscriber = {
+            email: email.trim().toLowerCase(),
+            subscribedAt: new Date().toISOString()
+        };
+        
+        try {
+            // Store in LocalStorage as fallback
+            const localSubscribers = JSON.parse(localStorage.getItem('auratral_subscribers') || '[]');
+            if (!localSubscribers.some(s => s.email === newSubscriber.email)) {
+                localSubscribers.push(newSubscriber);
+                localStorage.setItem('auratral_subscribers', JSON.stringify(localSubscribers));
+            }
+            
+            // Store in Firestore
+            await addDoc(collection(db, 'subscribers'), newSubscriber);
+        } catch (err) {
+            console.warn("Firestore save failed, saved locally:", err);
+        }
+        
+        setSubscribed(true);
+        setEmail('');
+        alert("Thank you for subscribing to Auratral Insights!");
+    };
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -131,10 +164,21 @@ const LatestAINews = () => {
                             <div className="p-5 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl text-center shadow-lg">
                                 <h4 className="text-sm font-bold text-white mb-2">Subscribe to Insights</h4>
                                 <p className="text-xs text-slate-400 mb-4">Get the latest updates on AI datasets and healthcare ML.</p>
-                                <div className="flex flex-col gap-2">
-                                    <input type="email" placeholder="Email address" className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2.5 text-xs text-slate-300 outline-none focus:border-blue-500 transition-colors" />
-                                    <button className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-2.5 text-xs font-bold transition-colors">Subscribe</button>
-                                </div>
+                                {subscribed ? (
+                                    <div className="text-xs text-green-400 font-bold py-2">✓ Subscribed! Thank you!</div>
+                                ) : (
+                                    <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="Email address"
+                                            className="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2.5 text-xs text-slate-300 outline-none focus:border-blue-500 transition-colors"
+                                            required
+                                        />
+                                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-2.5 text-xs font-bold transition-colors">Subscribe</button>
+                                    </form>
+                                )}
                             </div>
                         </div>
                     </div>

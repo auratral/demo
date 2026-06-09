@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowRight, ChevronRight, Mail } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const newsItems = [
     {
@@ -53,6 +55,37 @@ const newsItems = [
 const categories = ["All", "Platform Updates", "New Dataset", "Regulatory", "Healthcare AI", "Company News"];
 
 const News = () => {
+    const [email, setEmail] = useState('');
+    const [subscribed, setSubscribed] = useState(false);
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+        
+        const newSubscriber = {
+            email: email.trim().toLowerCase(),
+            subscribedAt: new Date().toISOString()
+        };
+        
+        try {
+            // Store in LocalStorage as fallback
+            const localSubscribers = JSON.parse(localStorage.getItem('auratral_subscribers') || '[]');
+            if (!localSubscribers.some(s => s.email === newSubscriber.email)) {
+                localSubscribers.push(newSubscriber);
+                localStorage.setItem('auratral_subscribers', JSON.stringify(localSubscribers));
+            }
+            
+            // Store in Firestore
+            await addDoc(collection(db, 'subscribers'), newSubscriber);
+        } catch (err) {
+            console.warn("Firestore save failed, saved locally:", err);
+        }
+        
+        setSubscribed(true);
+        setEmail('');
+        alert("Thank you for subscribing to Auratral Insights!");
+    };
+
     return (
         <div className="pt-32 pb-24 min-h-screen">
 
@@ -166,17 +199,23 @@ const News = () => {
                             <p className="text-sm text-slate-400 mb-6 leading-relaxed">
                                 Get the latest updates on medical data compliance, new longitudinal cohorts, and AI breakthroughs straight to your inbox.
                             </p>
-                            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-                                <input
-                                    type="email"
-                                    placeholder="Enter your work email"
-                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-white/40"
-                                    required
-                                />
-                                <button type="submit" className="w-full btn btn-primary py-3 justify-center shadow-lg shadow-blue-500/20 font-bold">
-                                    Subscribe to Insights
-                                </button>
-                            </form>
+                            {subscribed ? (
+                                <div className="text-sm text-green-400 font-bold py-4 text-center">✓ Subscribed! Thank you!</div>
+                            ) : (
+                                <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Enter your work email"
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-white/40"
+                                        required
+                                    />
+                                    <button type="submit" className="w-full btn btn-primary py-3 justify-center shadow-lg shadow-blue-500/20 font-bold">
+                                        Subscribe to Insights
+                                    </button>
+                                </form>
+                            )}
                             <p className="text-[10px] text-slate-500 mt-4 text-center">We respect your privacy. No spam, ever.</p>
                         </div>
                     </div>

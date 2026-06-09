@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
     Activity, BarChart3, Database, UploadCloud, FileText,
     Star, Users, DollarSign, Settings, Download, CheckCircle, File
 } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 const ProviderDashboard = () => {
+    const { user: firebaseUser } = useAuth();
+    const localUser = JSON.parse(localStorage.getItem('auratral_user') || 'null');
+    const authUser = firebaseUser || localUser;
+    const isAdmin = authUser?.email === 'admin@auratral.com';
     const [activeTab, setActiveTab] = useState('overview');
 
     return (
@@ -68,6 +75,15 @@ const ProviderDashboard = () => {
                                 <FileText size={18} />
                                 Documents
                             </button>
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setActiveTab('subscribers')}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'subscribers' ? 'bg-purple-500/20 text-purple-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                >
+                                    <Users size={18} />
+                                    Subscribers List
+                                </button>
+                            )}
 
                             <hr className="border-slate-800 my-2" />
 
@@ -84,6 +100,7 @@ const ProviderDashboard = () => {
                         {activeTab === 'api' && <ApiUsageTab />}
                         {activeTab === 'upload' && <UploadDatasetTab />}
                         {activeTab === 'docs' && <DocumentsTab />}
+                        {activeTab === 'subscribers' && isAdmin && <SubscribersTab />}
                     </div>
 
                 </div>
@@ -391,7 +408,7 @@ const DocumentsTab = () => (
                     <div className="p-3 bg-red-400/10 rounded-lg text-red-400"><File size={24} /></div>
                     <div>
                         <h4 className="font-bold text-primary">Legal Terms & Addendums.pdf</h4>
-                        <div className="text-xs text-slate-400">Added Jan 15, 2026 â€¢ 1.1 MB</div>
+                        <div className="text-xs text-slate-400">Added Jan 15, 2026 • 1.1 MB</div>
                     </div>
                 </div>
                 <button className="text-slate-400 hover:text-white"><Download size={20} /></button>
@@ -399,5 +416,104 @@ const DocumentsTab = () => (
         </div>
     </div>
 );
+
+const SubscribersTab = () => {
+    const [subscribers, setSubscribers] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSubscribers = async () => {
+            const localSubs = JSON.parse(localStorage.getItem('auratral_subscribers') || '[]');
+            try {
+                const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
+                const snapshot = await getDocs(q);
+                const fetched = [];
+                snapshot.forEach(docSnap => {
+                    fetched.push(docSnap.data());
+                });
+
+                // Merge and deduplicate by email
+                const merged = [...fetched];
+                localSubs.forEach(ls => {
+                    if (!merged.some(m => m.email === ls.email)) {
+                        merged.push(ls);
+                    }
+                });
+                merged.sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt));
+                setSubscribers(merged);
+            } catch (err) {
+                console.error("Error fetching subscribers:", err);
+                localSubs.sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt));
+                setSubscribers(localSubs);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSubscribers();
+    }, []);
+
+    const downloadCSV = () => {
+        if (subscribers.length === 0) {
+            alert("No subscribers to download.");
+            return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,Email,SubscribedAt\n";
+        subscribers.forEach(sub => {
+            csvContent += `${sub.email},${sub.subscribedAt}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "subscribers.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <div className="glass-panel p-8">
+            <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-primary mb-2 flex items-center gap-3">
+                        <Users className="text-purple-400" /> Subscribers & Leads
+                    </h2>
+                    <p className="text-slate-400">View and download email leads collected from the "Subscribe to Insights" newsletters.</p>
+                </div>
+                <button
+                    onClick={downloadCSV}
+                    className="btn btn-primary py-2 px-4 text-xs font-semibold flex items-center gap-2"
+                >
+                    <Download size={14} /> Download CSV
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="text-slate-500 italic text-center py-12">Loading subscribers...</div>
+            ) : subscribers.length === 0 ? (
+                <div className="text-slate-500 italic text-center py-12">No subscribers found yet.</div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr className="border-b border-slate-700/50 text-sm text-slate-400">
+                                <th className="pb-3 font-semibold pr-4">Email Address</th>
+                                <th className="pb-3 font-semibold pl-4">Subscription Date</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-sm text-slate-300">
+                            {subscribers.map((sub, idx) => (
+                                <tr key={idx} className="border-b border-slate-700/50 hover:bg-slate-800/20">
+                                    <td className="py-4 font-mono text-primary pr-4">{sub.email}</td>
+                                    <td className="py-4 pl-4">{new Date(sub.subscribedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default ProviderDashboard;
