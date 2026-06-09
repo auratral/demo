@@ -42,7 +42,7 @@ const LatestAINews = () => {
     const [email, setEmail] = useState('');
     const [subscribed, setSubscribed] = useState(false);
 
-    const handleSubscribe = async (e) => {
+    const handleSubscribe = (e) => {
         e.preventDefault();
         if (!email) return;
         
@@ -59,10 +59,12 @@ const LatestAINews = () => {
                 localStorage.setItem('auratral_subscribers', JSON.stringify(localSubscribers));
             }
             
-            // Store in Firestore
-            await addDoc(collection(db, 'subscribers'), newSubscriber);
+            // Store in Firestore asynchronously (non-blocking)
+            addDoc(collection(db, 'subscribers'), newSubscriber).catch((err) => {
+                console.warn("Firestore save failed, saved locally:", err);
+            });
         } catch (err) {
-            console.warn("Firestore save failed, saved locally:", err);
+            console.warn("Local storage save failed:", err);
         }
         
         setSubscribed(true);
