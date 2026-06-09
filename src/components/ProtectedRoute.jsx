@@ -5,8 +5,9 @@ import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
+    const localUser = JSON.parse(localStorage.getItem('auratral_user') || 'null');
 
-    if (loading) {
+    if (loading && !localUser) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative bg-[#0f0518] text-white">
                 {/* Glow spots */}
@@ -28,13 +29,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         );
     }
 
-    if (!user) {
+    const currentUser = user || localUser;
+
+    if (!currentUser) {
         return <Navigate to="/login" replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
         // Redirect user based on their actual role to avoid infinite redirection loops
-        const redirectPath = user.role === 'provider' ? '/provider-dashboard' : '/dashboard';
+        const redirectPath = currentUser.role === 'provider' ? '/provider-dashboard' : '/dashboard';
         return <Navigate to={redirectPath} replace />;
     }
 

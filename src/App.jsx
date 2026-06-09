@@ -62,7 +62,7 @@ function App() {
                     target.style.height = '0';
                     target.style.overflow = 'hidden';
                     target.style.position = 'absolute';
-                    target.remove();
+                    // target.remove(); // Commented out to prevent React DOMException removeChild errors
                 });
             });
         };

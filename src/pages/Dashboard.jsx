@@ -239,9 +239,9 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
         setGeneratedOutputs([]);
 
         const logs = [
-            `[Auratral Container Boot] Deploying isolated sandbox (Image: ${workspace.envType.includes('PyTorch') ? 'clinical-torch-cuda:latest' : 'clinical-py310-scipy:latest'})...`,
-            `[Auratral Container Boot] Allocating cluster resources: ${workspace.instanceTier}...`,
-            `[Auratral Sandbox] Mounting sandboxed clinical dataset: ${workspace.name}...`,
+            `[Auratral Container Boot] Deploying isolated sandbox (Image: ${(workspace?.envType && typeof workspace.envType === 'string' && workspace.envType.includes('PyTorch')) ? 'clinical-torch-cuda:latest' : 'clinical-py310-scipy:latest'})...`,
+            `[Auratral Container Boot] Allocating cluster resources: ${workspace?.instanceTier || 'Standard CPU'}...`,
+            `[Auratral Sandbox] Mounting sandboxed clinical dataset: ${workspace?.name || 'Dataset'}...`,
             `[Auratral Sandbox] Read-only directory '/data/' created. Data cohort slice compiled and mounted.`,
             `[Auratral Sandbox] Running script ${selectedScript} inside container...`,
         ];
@@ -249,7 +249,8 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
         let lineIdx = 0;
         const interval = setInterval(() => {
             if (lineIdx < logs.length) {
-                setTerminalLogs(prev => [...prev, logs[lineIdx]]);
+                const logLine = logs[lineIdx];
+                setTerminalLogs(prev => [...prev, logLine]);
                 lineIdx++;
             } else {
                 setRunProgress(p => {
@@ -496,80 +497,81 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
                         </div>
 
                         <div className="p-4 min-h-[160px]">
-                            {showSampleTab ? (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-[11px] font-mono text-slate-300">
-                                        <thead>
-                                            <tr className="border-b border-slate-800 text-slate-500">
-                                                {sampleData.length > 0 && Object.keys(sampleData[0]).map(key => (
-                                                    <th key={key} className="py-2 px-3">{key}</th>
+                            <div className={`overflow-x-auto ${showSampleTab ? '' : 'hidden'}`}>
+                                <table className="w-full text-left text-[11px] font-mono text-slate-300">
+                                    <thead>
+                                        <tr className="border-b border-slate-800 text-slate-500">
+                                            {sampleData.length > 0 && Object.keys(sampleData[0]).map(key => (
+                                                <th key={key} className="py-2 px-3">{key}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sampleData.map((row, idx) => (
+                                            <tr key={idx} className="border-b border-slate-900/50 hover:bg-slate-900/30">
+                                                {Object.values(row).map((val, valIdx) => (
+                                                    <td key={valIdx} className="py-2 px-3">{String(val)}</td>
                                                 ))}
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {sampleData.map((row, idx) => (
-                                                <tr key={idx} className="border-b border-slate-900/50 hover:bg-slate-900/30">
-                                                    {Object.values(row).map((val, valIdx) => (
-                                                        <td key={valIdx} className="py-2 px-3">{String(val)}</td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col md:flex-row gap-6">
-                                    {/* Terminal Console */}
-                                    <div className="flex-1 bg-black/60 border border-slate-900 p-3 rounded-lg font-mono text-[10px] text-slate-300 h-44 overflow-y-auto space-y-1">
-                                        {terminalLogs.length === 0 ? (
-                                            <div className="text-slate-500 italic">Click "Execute Script" to spin up sandbox container...</div>
-                                        ) : (
-                                            terminalLogs.map((log, idx) => (
-                                                <div key={idx} className={log.includes('Billing') ? 'text-pink-400 font-bold' : log.includes('error') ? 'text-red-400' : 'text-slate-300'}>{log}</div>
-                                            ))
-                                        )}
-                                    </div>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                    {/* Generated Artifacts Downloads */}
-                                    <div className="w-full md:w-[240px] border border-slate-800 bg-slate-900/20 p-3 rounded-lg flex flex-col justify-between shrink-0">
-                                        <div>
-                                            <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Exportable Artifacts</h5>
-                                            {generatedOutputs.length === 0 ? (
-                                                <div className="text-xs text-slate-600 italic">No output artifacts generated yet. Run scripts to compile model outputs.</div>
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    {generatedOutputs.map((file, idx) => (
-                                                        <div key={idx} className="flex justify-between items-center p-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-xs">
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText size={14} className="text-purple-400" />
-                                                                <span className="font-mono text-slate-200">{file.name}</span>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => downloadFile(file)}
-                                                                className="text-purple-400 hover:text-purple-300 transition-colors p-1"
-                                                                title="Download file"
-                                                            >
-                                                                <Download size={14} />
-                                                            </button>
+                            <div className={`flex flex-col md:flex-row gap-6 ${!showSampleTab ? '' : 'hidden'}`}>
+                                {/* Terminal Console */}
+                                <div className="flex-1 bg-black/60 border border-slate-900 p-3 rounded-lg font-mono text-[10px] text-slate-300 h-44 overflow-y-auto space-y-1">
+                                    {terminalLogs.length === 0 ? (
+                                        <div className="text-slate-500 italic">Click "Execute Script" to spin up sandbox container...</div>
+                                    ) : (
+                                        terminalLogs.map((log, idx) => {
+                                            if (!log || typeof log !== 'string') return null;
+                                            return (
+                                                <div key={idx} className={log.includes('Billing') ? 'text-pink-400 font-bold' : log.includes('error') ? 'text-red-400' : 'text-slate-300'}>{log}</div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
+                                {/* Generated Artifacts Downloads */}
+                                <div className="w-full md:w-[240px] border border-slate-800 bg-slate-900/20 p-3 rounded-lg flex flex-col justify-between shrink-0">
+                                    <div>
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Exportable Artifacts</h5>
+                                        {generatedOutputs.length === 0 ? (
+                                            <div className="text-xs text-slate-600 italic">No output artifacts generated yet. Run scripts to compile model outputs.</div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {generatedOutputs.map((file, idx) => (
+                                                    <div key={idx} className="flex justify-between items-center p-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-xs">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText size={14} className="text-purple-400" />
+                                                            <span className="font-mono text-slate-200">{file.name}</span>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        {generatedOutputs.some(f => f.name === 'auc_roc_curve.png') && (
-                                            <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col items-center">
-                                                <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">ROC Validation Chart Preview</div>
-                                                <svg viewBox="0 0 200 150" className="w-32 h-24 bg-slate-950 p-2 rounded border border-slate-800">
-                                                    <path d="M20 130 L60 80 L120 100 L180 30" fill="none" stroke="#a855f7" strokeWidth="2"/>
-                                                    <line x1="20" y1="20" x2="20" y2="130" stroke="#475569" strokeWidth="1"/>
-                                                    <line x1="20" y1="130" x2="180" y2="130" stroke="#475569" strokeWidth="1"/>
-                                                </svg>
+                                                        <button
+                                                            onClick={() => downloadFile(file)}
+                                                            className="text-purple-400 hover:text-purple-300 transition-colors p-1"
+                                                            title="Download file"
+                                                        >
+                                                            <Download size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
+                                    
+                                    {generatedOutputs.some(f => f.name === 'auc_roc_curve.png') && (
+                                        <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col items-center">
+                                            <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-2">ROC Validation Chart Preview</div>
+                                            <svg viewBox="0 0 200 150" className="w-32 h-24 bg-slate-950 p-2 rounded border border-slate-800">
+                                                <path d="M20 130 L60 80 L120 100 L180 30" fill="none" stroke="#a855f7" strokeWidth="2"/>
+                                                <line x1="20" y1="20" x2="20" y2="130" stroke="#475569" strokeWidth="1"/>
+                                                <line x1="20" y1="130" x2="180" y2="130" stroke="#475569" strokeWidth="1"/>
+                                            </svg>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -583,7 +585,9 @@ const IDESandbox = ({ workspace, onClose, onDeductCredits }) => {
    ═══════════════════════════════════════════════════════════════ */
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { user: authUser } = useAuth();
+    const { user: firebaseUser } = useAuth();
+    const localUser = JSON.parse(localStorage.getItem('auratral_user') || 'null');
+    const authUser = firebaseUser || localUser;
     const [activeTab, setActiveTab] = useState('overview');
     const [manageModalOpen, setManageModalOpen] = useState(false);
     const [managingDataset, setManagingDataset] = useState(null);
@@ -676,7 +680,10 @@ const Dashboard = () => {
 
             try {
                 const q = query(collection(db, 'purchases'), where('userId', '==', authUser.uid));
-                const snapshot = await getDocs(q);
+                const snapshot = await Promise.race([
+                    getDocs(q),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 1500))
+                ]);
                 const fetched = [];
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
