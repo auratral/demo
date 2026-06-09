@@ -426,7 +426,10 @@ const SubscribersTab = () => {
             const localSubs = JSON.parse(localStorage.getItem('auratral_subscribers') || '[]');
             try {
                 const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
-                const snapshot = await getDocs(q);
+                const snapshot = await Promise.race([
+                    getDocs(q),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 1500))
+                ]);
                 const fetched = [];
                 snapshot.forEach(docSnap => {
                     fetched.push(docSnap.data());
