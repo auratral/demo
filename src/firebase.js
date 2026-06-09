@@ -19,7 +19,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Services
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = getFirestore(app, "default");
 const storage = getStorage(app);
 
 // Analytics is only supported in browser environments
