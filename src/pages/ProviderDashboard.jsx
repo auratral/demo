@@ -424,6 +424,16 @@ const SubscribersTab = () => {
     useEffect(() => {
         const fetchSubscribers = async () => {
             const localSubs = JSON.parse(localStorage.getItem('auratral_subscribers') || '[]');
+            let devServerSubs = [];
+            try {
+                const res = await fetch('/api/subscribers');
+                if (res.ok) {
+                    devServerSubs = await res.json();
+                }
+            } catch (e) {
+                console.warn("Dev server subscribers fetch failed, using local fallback:", e);
+            }
+
             try {
                 const q = query(collection(db, 'subscribers'), orderBy('subscribedAt', 'desc'));
                 const snapshot = await Promise.race([
@@ -437,6 +447,11 @@ const SubscribersTab = () => {
 
                 // Merge and deduplicate by email
                 const merged = [...fetched];
+                devServerSubs.forEach(ds => {
+                    if (!merged.some(m => m.email === ds.email)) {
+                        merged.push(ds);
+                    }
+                });
                 localSubs.forEach(ls => {
                     if (!merged.some(m => m.email === ls.email)) {
                         merged.push(ls);
@@ -446,8 +461,14 @@ const SubscribersTab = () => {
                 setSubscribers(merged);
             } catch (err) {
                 console.error("Error fetching subscribers:", err);
-                localSubs.sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt));
-                setSubscribers(localSubs);
+                const mergedFallback = [...devServerSubs];
+                localSubs.forEach(ls => {
+                    if (!mergedFallback.some(m => m.email === ls.email)) {
+                        mergedFallback.push(ls);
+                    }
+                });
+                mergedFallback.sort((a, b) => new Date(b.subscribedAt) - new Date(a.subscribedAt));
+                setSubscribers(mergedFallback);
             } finally {
                 setLoading(false);
             }

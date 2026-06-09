@@ -75,6 +75,15 @@ const News = () => {
                 localStorage.setItem('auratral_subscribers', JSON.stringify(localSubscribers));
             }
             
+            // Store in local dev server disk storage via custom middleware API (non-blocking)
+            fetch('/api/subscribers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSubscriber)
+            }).catch(err => {
+                console.warn("Dev server file persistence failed, relying on localStorage/Firestore:", err);
+            });
+            
             // Store in Firestore asynchronously (non-blocking)
             addDoc(collection(db, 'subscribers'), newSubscriber).catch((err) => {
                 console.warn("Firestore save failed, saved locally:", err);
