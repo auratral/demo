@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 export const Login = () => {
     const navigate = useNavigate();
     const { user, loading: authLoading, loginWithEmail, loginWithGoogle, loginWithGithub } = useAuth();
-    const [role, setRole] = useState('consumer');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -43,7 +42,7 @@ export const Login = () => {
         setError(null);
         setLoading(true);
         try {
-            await loginMethod(role);
+            await loginMethod('consumer');
         } catch (err) {
             console.error("Social login error:", err);
             setError(err.message || "An error occurred during social login.");
@@ -100,29 +99,11 @@ export const Login = () => {
                             <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Auratral" className="h-12 w-auto mx-auto lg:mx-0" />
                         </Link>
                         <h1 className="text-3xl font-bold text-primary mb-3">
-                            {role === 'consumer' ? 'Welcome back' : 'Provider Portal'}
+                            Welcome back
                         </h1>
                         <p className="text-slate-400">
-                            {role === 'consumer' ? 'Log in to manage your datasets, API keys, and billing.' : 'Log in to manage your data assets and monitor usage.'}
+                            Log in to manage your datasets, API keys, and billing.
                         </p>
-                    </div>
-
-                    {/* Role Toggle */}
-                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700/50 mb-6">
-                        <button
-                            type="button"
-                            onClick={() => setRole('consumer')}
-                            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${role === 'consumer' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-slate-300'}`}
-                        >
-                            Data Consumer
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setRole('provider')}
-                            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${role === 'provider' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-slate-400 hover:text-slate-300'}`}
-                        >
-                            Data Provider
-                        </button>
                     </div>
 
                     {error && (
@@ -218,7 +199,6 @@ export const Login = () => {
 export const Signup = () => {
     const navigate = useNavigate();
     const { user, loading: authLoading, signupWithEmail, loginWithGoogle, loginWithGithub } = useAuth();
-    const [role, setRole] = useState('consumer');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -251,7 +231,7 @@ export const Signup = () => {
                 .filter(Boolean)
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                 .join(' ');
-            await signupWithEmail(email, password, fullName, role);
+            await signupWithEmail(email, password, fullName, 'consumer');
         } catch (err) {
             console.error("Sign-up error:", err);
             let message = "Failed to create account. Please try again.";
@@ -271,7 +251,7 @@ export const Signup = () => {
         setError(null);
         setLoading(true);
         try {
-            await loginMethod(role);
+            await loginMethod('consumer');
         } catch (err) {
             console.error("Social signup error:", err);
             setError(err.message || "An error occurred during social registration.");
@@ -330,51 +310,30 @@ export const Signup = () => {
                             <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Auratral" className="h-12 w-auto mx-auto lg:mx-0" />
                         </Link>
                         <h1 className="text-3xl font-bold text-primary mb-3">
-                            {role === 'consumer' ? 'Create your account' : 'Become a Provider'}
+                            Create your account
                         </h1>
                         <p className="text-slate-400">
-                            {role === 'consumer' ? 'Start provisioning compliant medical data today.' : 'Monetize your compliant medical datasets today.'}
+                            Start provisioning compliant medical data today.
                         </p>
                     </div>
 
-                    {/* Role Toggle */}
-                    <div className="flex bg-slate-800/50 p-1 rounded-lg border border-slate-700/50 mb-6">
-                        <button
-                            type="button"
-                            onClick={() => setRole('consumer')}
-                            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${role === 'consumer' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-slate-400 hover:text-slate-300'}`}
-                        >
-                            Data Consumer
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setRole('provider')}
-                            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${role === 'provider' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-slate-300'}`}
-                        >
-                            Data Provider
-                        </button>
-                    </div>
-
-                    {role === 'consumer' && (
-                        <div className="mb-6 flex items-start gap-3 bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
-                            <input 
-                                type="checkbox" 
-                                id="studentCheck" 
-                                checked={isStudent} 
-                                onChange={(e) => {
-                                    setIsStudent(e.target.checked);
-                                    if(e.target.checked) setRole('consumer'); // force consumer if student
-                                }}
-                                className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-800/50 text-purple-500 focus:ring-purple-500" 
-                            />
-                            <div>
-                                <label htmlFor="studentCheck" className="text-sm font-semibold text-slate-200 cursor-pointer block leading-none">
-                                    I am a Student / Research Scholar
-                                </label>
-                                <p className="text-xs text-slate-400 mt-1">Requires university email or active student ID verification.</p>
-                            </div>
+                    <div className="mb-6 flex items-start gap-3 bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
+                        <input 
+                            type="checkbox" 
+                            id="studentCheck" 
+                            checked={isStudent} 
+                            onChange={(e) => {
+                                setIsStudent(e.target.checked);
+                            }}
+                            className="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-800/50 text-purple-500 focus:ring-purple-500" 
+                        />
+                        <div>
+                            <label htmlFor="studentCheck" className="text-sm font-semibold text-slate-200 cursor-pointer block leading-none">
+                                I am a Student / Research Scholar
+                            </label>
+                            <p className="text-xs text-slate-400 mt-1">Requires university email or active student ID verification.</p>
                         </div>
-                    )}
+                    </div>
 
                     {error && (
                         <div className="mb-6 flex items-start gap-3 bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-400 animate-in fade-in slide-in-from-top-2">

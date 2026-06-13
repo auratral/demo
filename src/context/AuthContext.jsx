@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
             if (firebaseUser) {
                 const defaultName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
                 const localAvatar = localStorage.getItem(`avatar_${firebaseUser.uid}`);
-                const storedRole = localStorage.getItem('auth_selected_role') || 'consumer';
+                const storedRole = firebaseUser.email?.toLowerCase() === 'admin@auratral.com' ? 'provider' : (localStorage.getItem('auth_selected_role') || 'consumer');
                 const fallbackProfile = {
                     name: defaultName,
                     email: firebaseUser.email || '',
@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }) => {
                         setUser({ 
                             uid: firebaseUser.uid, 
                             ...data, 
+                            role: firebaseUser.email?.toLowerCase() === 'admin@auratral.com' ? 'provider' : data.role,
                             avatarUrl: localAvatar || data.avatarUrl || fallbackProfile.avatarUrl 
                         });
                     } else {
@@ -124,10 +125,11 @@ export const AuthProvider = ({ children }) => {
             console.warn("Could not update auth profile display name:", profileErr);
         }
 
+        const determinedRole = email.trim().toLowerCase() === 'admin@auratral.com' ? 'provider' : role;
         const profile = {
             name,
             email,
-            role,
+            role: determinedRole,
             avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
             createdAt: new Date().toISOString()
         };
@@ -155,10 +157,11 @@ export const AuthProvider = ({ children }) => {
             const firebaseUser = userCredential.user;
             
             const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+            const determinedRole = firebaseUser.email?.toLowerCase() === 'admin@auratral.com' ? 'provider' : role;
             const profile = {
                 name: displayName,
                 email: firebaseUser.email || '',
-                role,
+                role: determinedRole,
                 avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
                 createdAt: new Date().toISOString()
             };
@@ -205,10 +208,11 @@ export const AuthProvider = ({ children }) => {
             const firebaseUser = userCredential.user;
             
             const displayName = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User';
+            const determinedRole = firebaseUser.email?.toLowerCase() === 'admin@auratral.com' ? 'provider' : role;
             const profile = {
                 name: displayName,
                 email: firebaseUser.email || '',
-                role,
+                role: determinedRole,
                 avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`,
                 createdAt: new Date().toISOString()
             };
