@@ -1,0 +1,31 @@
+First Name,Last Name,Verified Public Email ID,Likely Working Corporate Email ID,Job Title,Seniority,Departments,Company Name,Company Domain,Country
+Sundar,Pichai,sundar@google.com,sundarpichai@google.com,"CEO, Alphabet & Google",c-suite,General Management,Google,google.com,United States
+Demis,Hassabis,N/A (Use DeepMind Contact Forms / Isomorphic Labs),demis.hassabis@google.com,"CEO, Google DeepMind",founder,General Management; Research & Analytics,Google DeepMind,google.com,United Kingdom
+Jeff,Dean,jeff@google.com,jeff.dean@google.com,"Chief Scientist, Google Research",c-suite,Research & Analytics; Engineering & Technical,Google,google.com,United States
+Roy,Jakobs,N/A (Reach via Corporate Channels),roy.jakobs@philips.com,"CEO, Royal Philips",c-suite,General Management,Philips,philips.com,Netherlands
+Shez,Partovi,N/A (Reach via Corporate Communications),shez.partovi@philips.com,Chief Innovation & Strategy Officer,c-suite,Research & Analytics; General Management,Philips,philips.com,United States
+Giridhar,Peela,N/A,giridhar.peela@philips.com,"Director of AI, Philips Healthcare India",director,Engineering & Technical; Research & Analytics,Philips Healthcare,philips.com,India
+Yann,LeCun,yann.lecun@nyu.edu,yann@meta.com,Chief AI Scientist,c-suite,Research & Analytics; Engineering & Technical,Meta,meta.com,United States
+Mark,Zuckerberg,zuck@meta.com,mark.zuckerberg@meta.com,CEO & Founder,founder,General Management,Meta,meta.com,United States
+Satya,Nadella,N/A (Inquiries routed to admin/escalations),satya.nadella@microsoft.com,CEO & Chairman,c-suite,General Management,Microsoft,microsoft.com,United States
+Mustafa,Suleyman,N/A,mustafa.suleyman@microsoft.com,"CEO, Microsoft AI",founder,General Management; Research & Analytics,Microsoft AI,microsoft.com,United Kingdom
+Sam,Altman,sam@openai.com,sam@openai.com,CEO & Co-Founder,founder,General Management,OpenAI,openai.com,United States
+Greg,Brockman,N/A,greg@openai.com,President & Co-Founder,founder,General Management; Engineering & Technical,OpenAI,openai.com,United States
+Dario,Amodei,N/A,dario@anthropic.com,CEO & Co-Founder,founder,General Management,Anthropic,anthropic.com,United States
+Arthur,Mensch,N/A,arthur@mistral.ai,CEO & Co-Founder,founder,General Management,Mistral AI,mistral.ai,France
+Andrew,Ng,ang@cs.stanford.edu,andrew@landing.ai,Founder & Executive Chairman,founder,General Management; Research & Analytics,Landing AI,landing.ai,United States
+Geeta,Manjunath,geetha@niramai.com,geeta@niramai.com,CEO & Founder,founder,General Management; Health Care & Medical,Niramai Health Analytix,niramai.com,India
+Bhavish,Aggarwal,N/A,bhavish.aggarwal@krutrim.in,"Founder, Krutrim AI & Ola",founder,General Management,Krutrim AI,krutrim.in,India
+Sridhar,Vembu,svembu@zohocorp.com,sridhar@zoho.com,CEO & Founder,founder,General Management,Zoho Corporation,zohocorp.com,India
+Umesh,Sachdev,N/A,umesh@uniphore.com,CEO & Co-Founder,founder,General Management,Uniphore,uniphore.com,India
+Tarun,Mehta,tarun.m@atherenergy.com,tarun@atherenergy.com,CEO & Co-Founder,founder,General Management,Ather Energy,atherenergy.com,India
+Kunal,Shah,N/A (Reach via LinkedIn / CRED Support),kunal@cred.club,Founder,founder,General Management,CRED,cred.club,India
+Nithin,Kamath,nithin.k@zerodha.com,nithin@zerodha.com,CEO & Founder,founder,General Management,Zerodha,zerodha.com,India
+Deepinder,Goyal,N/A,deepinder@zomato.com,CEO & Founder,founder,General Management,Zomato,zomato.com,India
+Sriharsha,Majety,N/A,sriharsha.majety@swiggy.in,CEO & Co-Founder,founder,General Management,Swiggy,swiggy.in,India
+Amit,Kharat,N/A,amit@synapsica.com,Co-Founder,founder,General Management; Health Care & Medical,Synapsica Healthcare,synapsica.com,India
+Raghu,Dharmaraju,N/A,raghu@artpark.in,President,c-suite,General Management; Engineering & Technical,ARTPARK @ IISc,artpark.in,India
+Aakrit,Vaish,N/A,aakrit@haptik.ai,CEO & Co-Founder,founder,General Management,Haptik AI,haptik.ai,India
+Tim,Cook,tcook@apple.com,tim.cook@apple.com,"CEO, Apple",c-suite,General Management,Apple,apple.com,United States
+John,Giannandrea,N/A,jgiannandrea@apple.com,"Senior VP, Machine Learning & AI Strategy",vice president,Research & Analytics; Engineering & Technical,Apple,apple.com,United States
+Craig,Federighi,N/A,federighi@apple.com,"Senior VP, Software Engineering",vice president,Engineering & Technical,Apple,apple.com,United States

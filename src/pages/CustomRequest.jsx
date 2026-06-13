@@ -1,10 +1,62 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Send, FileText, UploadCloud, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const CustomRequest = () => {
     const navigate = useNavigate();
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+
+    // Form state
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [institution, setInstitution] = useState('');
+    const [domain, setDomain] = useState('');
+    const [icdCodes, setIcdCodes] = useState('');
+    const [description, setDescription] = useState('');
+    const [recordVolume, setRecordVolume] = useState('< 10,000');
+    const [licenseType, setLicenseType] = useState('Academic / Research');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+
+        const requestData = {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim().toLowerCase(),
+            institution: institution.trim(),
+            domain,
+            icdCodes: icdCodes.trim(),
+            description: description.trim(),
+            recordVolume,
+            licenseType,
+            submittedAt: new Date().toISOString(),
+            status: 'pending'
+        };
+
+        try {
+            // Save to Firestore (same pattern as subscribers)
+            await addDoc(collection(db, 'customRequests'), requestData);
+        } catch (err) {
+            console.warn("Firestore save failed, saving locally:", err);
+        }
+
+        // Also save locally as fallback
+        try {
+            const localRequests = JSON.parse(localStorage.getItem('auratral_custom_requests') || '[]');
+            localRequests.push(requestData);
+            localStorage.setItem('auratral_custom_requests', JSON.stringify(localRequests));
+        } catch (err) {
+            console.warn("Local storage save failed:", err);
+        }
+
+        setSubmitting(false);
+        setIsSubmitted(true);
+    };
 
     if (isSubmitted) {
         return (
@@ -92,7 +144,7 @@ const CustomRequest = () => {
                     {/* Right Area - Form */}
                     <div className="lg:col-span-8">
                         <div className="glass-panel p-8 sm:p-12">
-                            <form className="space-y-12" onSubmit={(e) => { e.preventDefault(); setIsSubmitted(true); }}>
+                            <form className="space-y-12" onSubmit={handleSubmit}>
 
                                 {/* Section 1: Contact Details */}
                                 <div>
@@ -103,19 +155,19 @@ const CustomRequest = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">First Name *</label>
-                                            <input type="text" required className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Jane" />
+                                            <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Jane" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Last Name *</label>
-                                            <input type="text" required className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Doe" />
+                                            <input type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Doe" />
                                         </div>
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Institutional Email *</label>
-                                            <input type="email" required className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="name@university.edu" />
+                                            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="name@university.edu" />
                                         </div>
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Institution / Company *</label>
-                                            <input type="text" required className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Full organization name" />
+                                            <input type="text" required value={institution} onChange={(e) => setInstitution(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Full organization name" />
                                         </div>
                                     </div>
                                 </div>
@@ -129,7 +181,7 @@ const CustomRequest = () => {
                                     <div className="space-y-6">
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Primary Medical Domain *</label>
-                                            <select required className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
+                                            <select required value={domain} onChange={(e) => setDomain(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
                                                 <option value="">Select a domain...</option>
                                                 <option>Clinical Trials & Studies</option>
                                                 <option>Electronic Health Records (EHR)</option>
@@ -143,19 +195,19 @@ const CustomRequest = () => {
 
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Specific Conditions / ICD Codes</label>
-                                            <input type="text" className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-inner" placeholder="e.g., E11 (Type 2 Diabetes), Sepsis cohort" />
+                                            <input type="text" value={icdCodes} onChange={(e) => setIcdCodes(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all shadow-inner" placeholder="e.g., E11 (Type 2 Diabetes), Sepsis cohort" />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-semibold text-slate-300 mb-2">Clinical Description & Objectives *</label>
                                             <p className="text-xs text-slate-500 mb-3">Describe the specific clinical variables you need, inclusion/exclusion criteria, and the use case for the data.</p>
-                                            <textarea required rows="6" className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none transition-all shadow-inner" placeholder="We are building an ML model to predict..."></textarea>
+                                            <textarea required rows="6" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none transition-all shadow-inner" placeholder="We are building an ML model to predict..."></textarea>
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Target Record Volume</label>
-                                                <select className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
+                                                <select value={recordVolume} onChange={(e) => setRecordVolume(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
                                                     <option>&lt; 10,000</option>
                                                     <option>10,000 - 50,000</option>
                                                     <option>50,000 - 250,000</option>
@@ -164,7 +216,7 @@ const CustomRequest = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Intended License Type</label>
-                                                <select className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
+                                                <select value={licenseType} onChange={(e) => setLicenseType(e.target.value)} className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3.5 text-primary focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none shadow-inner">
                                                     <option>Academic / Research</option>
                                                     <option>Commercial - Single Product</option>
                                                     <option>Commercial - Enterprise</option>
@@ -200,8 +252,8 @@ const CustomRequest = () => {
 
                                 <div className="pt-8 border-t border-glass-border flex flex-col sm:flex-row justify-end gap-4">
                                     <button type="button" onClick={() => navigate('/')} className="btn btn-outline py-3 px-8 order-2 sm:order-1">Cancel</button>
-                                    <button type="submit" className="btn btn-primary py-3 px-8 flex items-center justify-center gap-2 order-1 sm:order-2">
-                                        Submit Request <Send size={18} />
+                                    <button type="submit" disabled={submitting} className="btn btn-primary py-3 px-8 flex items-center justify-center gap-2 order-1 sm:order-2 disabled:opacity-50">
+                                        {submitting ? 'Submitting...' : 'Submit Request'} {!submitting && <Send size={18} />}
                                     </button>
                                 </div>
 

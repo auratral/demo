@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
     Activity, BarChart3, Database, UploadCloud, FileText,
-    Star, Users, DollarSign, Settings, Download, CheckCircle, File
+    Star, Users, DollarSign, Settings, Download, CheckCircle, File, ClipboardList
 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
@@ -76,6 +76,7 @@ const ProviderDashboard = () => {
                                 Documents
                             </button>
                             {isAdmin && (
+                                <>
                                 <button
                                     onClick={() => setActiveTab('subscribers')}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'subscribers' ? 'bg-purple-500/20 text-purple-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
@@ -83,6 +84,14 @@ const ProviderDashboard = () => {
                                     <Users size={18} />
                                     Subscribers List
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('customRequests')}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'customRequests' ? 'bg-orange-500/20 text-orange-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                >
+                                    <ClipboardList size={18} />
+                                    Custom Requests
+                                </button>
+                                </>
                             )}
 
                             <hr className="border-slate-800 my-2" />
@@ -101,6 +110,7 @@ const ProviderDashboard = () => {
                         {activeTab === 'upload' && <UploadDatasetTab />}
                         {activeTab === 'docs' && <DocumentsTab />}
                         {activeTab === 'subscribers' && isAdmin && <SubscribersTab />}
+                        {activeTab === 'customRequests' && isAdmin && <CustomRequestsTab />}
                     </div>
 
                 </div>
@@ -534,6 +544,144 @@ const SubscribersTab = () => {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const CustomRequestsTab = () => {
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [expandedId, setExpandedId] = useState(null);
+
+    useEffect(() => {
+        const fetchRequests = async () => {
+            const localReqs = JSON.parse(localStorage.getItem('auratral_custom_requests') || '[]');
+            try {
+                const q = query(collection(db, 'customRequests'), orderBy('submittedAt', 'desc'));
+                const snapshot = await Promise.race([
+                    getDocs(q),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 3000))
+                ]);
+                const fetched = [];
+                snapshot.forEach(docSnap => {
+                    fetched.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Merge and deduplicate by email + submittedAt
+                const merged = [...fetched];
+                localReqs.forEach(lr => {
+                    if (!merged.some(m => m.email === lr.email && m.submittedAt === lr.submittedAt)) {
+                        merged.push(lr);
+                    }
+                });
+                merged.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                setRequests(merged);
+            } catch (err) {
+                console.error("Error fetching custom requests:", err);
+                localReqs.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                setRequests(localReqs);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRequests();
+    }, []);
+
+    const downloadCSV = () => {
+        if (requests.length === 0) {
+            alert("No custom requests to download.");
+            return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,Name,Email,Institution,Domain,ICD Codes,Description,Record Volume,License Type,Status,Submitted At\n";
+        requests.forEach(req => {
+            const name = `${req.firstName || ''} ${req.lastName || ''}`.trim();
+            const escape = (str) => `"${(str || '').replace(/"/g, '""')}"`;
+            csvContent += `${escape(name)},${escape(req.email)},${escape(req.institution)},${escape(req.domain)},${escape(req.icdCodes)},${escape(req.description)},${escape(req.recordVolume)},${escape(req.licenseType)},${escape(req.status)},${escape(req.submittedAt)}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "custom_requests.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <div className="glass-panel p-8">
+            <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-primary mb-2 flex items-center gap-3">
+                        <ClipboardList className="text-orange-400" /> Custom Requests
+                    </h2>
+                    <p className="text-slate-400">View custom dataset requests submitted through the Enterprise form.</p>
+                </div>
+                <button
+                    onClick={downloadCSV}
+                    className="btn btn-primary py-2 px-4 text-xs font-semibold flex items-center gap-2"
+                >
+                    <Download size={14} /> Download CSV
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="text-slate-500 italic text-center py-12">Loading custom requests...</div>
+            ) : requests.length === 0 ? (
+                <div className="text-slate-500 italic text-center py-12">No custom requests found yet.</div>
+            ) : (
+                <div className="space-y-4">
+                    {requests.map((req, idx) => (
+                        <div key={idx} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 hover:border-orange-500/30 transition-colors">
+                            <div className="flex justify-between items-start cursor-pointer" onClick={() => setExpandedId(expandedId === idx ? null : idx)}>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h4 className="font-bold text-primary">{req.firstName} {req.lastName}</h4>
+                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                            req.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :
+                                            req.status === 'approved' ? 'bg-green-500/10 text-green-400' :
+                                            'bg-slate-500/10 text-slate-400'
+                                        }`}>{req.status || 'pending'}</span>
+                                    </div>
+                                    <div className="text-sm text-slate-400">{req.email} · {req.institution}</div>
+                                </div>
+                                <div className="text-xs text-slate-500 shrink-0 ml-4">
+                                    {new Date(req.submittedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                            </div>
+
+                            {expandedId === idx && (
+                                <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Domain</span>
+                                            <div className="text-primary font-medium mt-1">{req.domain || '—'}</div>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Record Volume</span>
+                                            <div className="text-primary font-medium mt-1">{req.recordVolume || '—'}</div>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">License Type</span>
+                                            <div className="text-primary font-medium mt-1">{req.licenseType || '—'}</div>
+                                        </div>
+                                    </div>
+                                    {req.icdCodes && (
+                                        <div>
+                                            <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">ICD Codes / Conditions</span>
+                                            <div className="text-slate-300 text-sm mt-1">{req.icdCodes}</div>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Description & Objectives</span>
+                                        <div className="text-slate-300 text-sm mt-1 leading-relaxed whitespace-pre-wrap">{req.description}</div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
